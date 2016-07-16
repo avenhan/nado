@@ -4,6 +4,13 @@ import java.math.BigDecimal;
 
 import av.nado.remote.NadoRemote;
 
+/**
+ * 
+ * @author aven han
+ * 
+ *         fjfhanjian@163.com
+ *
+ */
 public class TestClient
 {
     public static void main(String[] args) throws Exception
