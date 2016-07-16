@@ -1,0 +1,17 @@
+package av.nado.test;
+
+import av.nado.base.NadoManager;
+
+public class TestServer
+{
+    public static void main1(String[] args) throws Exception
+    {
+        NadoManager.instance().loadConfig("conf/nado.xml");
+        NadoManager.instance().invoke(TestRemote.class.getName(), "setName", "avenhan");
+        String name = (String) NadoManager.instance().invoke(TestRemote.class.getName(), "getName");
+        
+        int id = (Integer) NadoManager.instance().invoke(TestRemote.class.getName(), "getId");
+        
+        System.out.println(name + " id: " + id);
+    }
+}

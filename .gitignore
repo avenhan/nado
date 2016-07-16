@@ -1,0 +1,13 @@
+bin/
+log/
+dist*/
+*.bak
+.~
+*~
+.DS_Store
+.settings/
+/bin/
+/bin/
+/bin/
+/bin/
+target/

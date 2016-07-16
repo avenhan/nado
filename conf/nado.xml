@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aven>
+	<register>
+	    <!-- protocol can be: redis, zookeeper -->
+	    <protocol>zookeeper</protocol>
+	    <address>127.0.0.1:2181</address>
+	</register>
+	
+	<bootstrap>
+	    <!-- protocol can be: netty, http -->
+	    <protocol>netty</protocol>
+	    <port>9000</port>
+	</bootstrap>
+	
+	<!-- remote ip list -->
+	<remote>av.nado.test.TestRemote</remote>
+	<remote>av.nado.test.TestOutput</remote>
+	
+</aven>
