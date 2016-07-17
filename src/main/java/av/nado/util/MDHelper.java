@@ -76,6 +76,21 @@ public class MDHelper
         return md.digest();
     }
     
+    public static String hex(int value)
+    {
+        return Integer.toHexString(value);
+    }
+    
+    public static String hex(long value)
+    {
+        return "";
+    }
+    
+    public static String hex(double value)
+    {
+        return "";
+    }
+    
     public static String hex(byte[] bytes)
     {
         int len = bytes.length;

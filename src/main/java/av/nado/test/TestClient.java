@@ -1,8 +1,15 @@
 package av.nado.test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import av.nado.remote.NadoRemote;
+import av.nado.util.CompareKey;
+import av.nado.util.CompareType;
+import av.nado.util.JsonUtil;
 
 /**
  * 
@@ -17,10 +24,16 @@ public class TestClient
     {
         TestServer.main1(args);
         
+        NadoRemote.instance().loadConfig("conf/nado.xml");
+        
+        test();
+        
+    }
+    
+    private static void test()
+    {
         try
         {
-            NadoRemote.instance().loadConfig("conf/nado.xml");
-            
             TestRemote testRemote = new TestRemote();
             testRemote.setName("aven");
             testRemote.setId(1002);
@@ -33,45 +46,42 @@ public class TestClient
                 System.out.println(ret.toString());
             }
             
-            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", true);
-            
             // test map
-            // Map<CompareKey, Object> mapCondition = new HashMap<CompareKey,
-            // Object>();
-            // mapCondition.put(new CompareKey("id", CompareType.CT_BIGGER),
-            // 200);
-            // ret = NadoRemote.instance().invoke("av.nado.test.TestOutput",
-            // "testMap", mapCondition, 30L, 20);
-            //
-            // // test list
-            // List<String> lst = new ArrayList<String>();
-            // lst.add("1");
-            // ret = NadoRemote.instance().invoke("av.nado.test.TestOutput",
-            // "testSimpleList", lst);
-            // System.out.println(JsonUtil.toJson(ret));
-            //
-            // List<TestRemote> lst2 = new ArrayList<TestRemote>();
-            // lst2.add(testRemote);
-            // ret = NadoRemote.instance().invoke("av.nado.test.TestOutput",
-            // "testList", lst2);
-            // System.out.println(JsonUtil.toJson(ret));
-            //
-            // // test object
-            // ret = NadoRemote.instance().invoke("av.nado.test.TestOutput",
-            // "testObject", testRemote);
-            // System.out.println(JsonUtil.toJson(ret));
-            //
-            // // test throw
-            // ret = NadoRemote.instance().invoke("av.nado.test.TestOutput",
-            // "testThrow", false);
+            Map<CompareKey, Object> mapCondition = new HashMap<CompareKey, Object>();
+            mapCondition.put(new CompareKey("id", CompareType.CT_BIGGER), 200);
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testMap", mapCondition, 30L, 20);
             
-            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", true);
+            // test list
+            List<String> lst = new ArrayList<String>();
+            lst.add("1");
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testSimpleList", lst);
+            System.out.println(JsonUtil.toJson(ret));
+            
+            List<TestRemote> lst2 = new ArrayList<TestRemote>();
+            lst2.add(testRemote);
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testList", lst2);
+            System.out.println(JsonUtil.toJson(ret));
+            
+            // test object
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testObject", testRemote);
+            System.out.println(JsonUtil.toJson(ret));
+            
+            // test throw
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", false);
+            
+            try
+            {
+                ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", true);
+            }
+            catch (Exception e)
+            {
+                // TODO: handle exception
+            }
         }
         catch (Throwable e)
         {
             e.printStackTrace();
             // TODO: handle exception
         }
-        
     }
 }

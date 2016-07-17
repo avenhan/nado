@@ -11,6 +11,7 @@ import org.jboss.netty.channel.Channel;
 
 import av.action.ActionPool;
 import av.nado.remote.RemoteIp;
+import av.nado.util.Aggregate;
 import av.nado.util.Check;
 import av.nado.util.JsonUtil;
 import av.util.exception.AException;
@@ -20,9 +21,9 @@ public class NettyChannelInfo
 {
     private static Logger            logger                 = LogManager.getLogger(NettyChannelInfo.class);
     
-    public static final int          KEY_TIME_TO_DROP_WORDS = 5000;
-    public static final int          KEY_TIME_TO_REDO_SEND  = 30000;
-    public static final int          KEY_TIME_TO_RESENT     = 10000;
+    public static final int          KEY_TIME_TO_DROP_WORDS = 500000;
+    public static final int          KEY_TIME_TO_REDO_SEND  = 300000;
+    public static final int          KEY_TIME_TO_RESENT     = 100000;
     public static final int          KEY_TIME_SEND_WATE     = 100;
     
     private static NettyManager      netty                  = NettyManager.instance();
@@ -131,7 +132,7 @@ public class NettyChannelInfo
     
     public long postMessage(NettySendInfo info)
     {
-        Trace.print("ip: {} post command: {} message: {}", ip, info.getWrap().getCommand(), info.getWrap().getMsg());
+        Trace.print("ip: {} post command: {} len: {} message: {}", ip, info.getWrap().getCommand(), info.getJson().length(), info.getWrap().getMsg());
         return postBaseMessage(info, false);
     }
     
@@ -268,12 +269,14 @@ public class NettyChannelInfo
                 break;
             }
             
-            String json = JsonUtil.readJsonString(buffer);
-            if (!Check.IfOneEmpty(json))
+            Aggregate<Integer, String> aggregate = NettySignature.getValue(buffer);
+            String json = aggregate.getSecond();
+            if (aggregate.getFirst() > -1 && !Check.IfOneEmpty(json))
             {
                 // can explain to json
                 lastCanbeJsonTime = System.currentTimeMillis();
-                buffer = buffer.substring(json.length());
+                buffer = buffer.substring(aggregate.getFirst() + json.length());
+                Trace.print("ip: {} get one json: [{}] left: [{}]", ip, json, buffer);
                 onReceiveMessage(json);
                 continue;
             }
@@ -287,9 +290,12 @@ public class NettyChannelInfo
             
             if (System.currentTimeMillis() - lastCanbeJsonTime < KEY_TIME_TO_DROP_WORDS)
             {
-                continue;
+                // can not read json and do not trigger the drop words routine,
+                // so break
+                break;
             }
             
+            Trace.print("unkown json check....{}", buffer);
             return readJson(buffer.substring(1));
         }
         
@@ -302,8 +308,6 @@ public class NettyChannelInfo
         {
             return;
         }
-        
-        Trace.print("receive json: {}", json);
         
         NettyWrap wrap = JsonUtil.toObject(NettyWrap.class, json);
         if (wrap == null)

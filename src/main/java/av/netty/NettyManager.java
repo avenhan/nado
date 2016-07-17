@@ -204,7 +204,7 @@ public class NettyManager
         
         NettySendInfo sent = new NettySendInfo();
         sent.setCreateTime(System.currentTimeMillis());
-        sent.setJson(json);
+        sent.setJson(NettySignature.signature(json));
         sent.setSendCount(0);
         sent.setSentTime(0);
         sent.setWrap(wrap);
@@ -252,7 +252,7 @@ public class NettyManager
         
         NettySendInfo sent = new NettySendInfo();
         sent.setCreateTime(System.currentTimeMillis());
-        sent.setJson(json);
+        sent.setJson(NettySignature.signature(json));
         sent.setSendCount(0);
         sent.setSentTime(0);
         sent.setWrap(wrap);
@@ -446,13 +446,13 @@ public class NettyManager
                             e.printStackTrace();
                         }
                     }
-                    NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
+                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
                     times++;
                     
-                    NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
+                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
                     times++;
                     
-                    NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
+                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
                     times++;
                 }
                 catch (AException e)
