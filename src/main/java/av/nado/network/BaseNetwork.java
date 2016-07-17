@@ -10,5 +10,7 @@ public interface BaseNetwork
     
     public void startClient(RemoteIp ip) throws AException;
     
+    public boolean isValidClient(RemoteIp ip) throws AException;
+    
     public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException;
 }

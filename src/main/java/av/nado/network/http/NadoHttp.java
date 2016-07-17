@@ -71,4 +71,10 @@ public class NadoHttp implements BaseNetwork
         return ret;
     }
     
+    public boolean isValidClient(RemoteIp ip) throws AException
+    {
+        // TODO Auto-generated method stub
+        return true;
+    }
+    
 }

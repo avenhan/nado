@@ -47,6 +47,7 @@ public class NadoParam
             }
             else if (param instanceof Throwable)
             {
+                fuTime.add("type", param.getClass().getName());
                 b.append(Throwable.class.getName()).append(":").append(hessianEncode(param));
             }
             else if (param instanceof String)
@@ -590,6 +591,7 @@ public class NadoParam
         }
         
         String valueTypeName = value.substring(0, index);
+        
         value = value.substring(index + 1);
         
         try

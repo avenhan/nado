@@ -42,4 +42,9 @@ public class NadoNetty implements BaseNetwork
         return aggregate;
     }
     
+    public boolean isValidClient(RemoteIp ip) throws AException
+    {
+        return NettyManager.instance().isValid(ip);
+    }
+    
 }

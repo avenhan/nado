@@ -163,6 +163,25 @@ public class NadoRemote
         for (RemoteIp remoteIp : lstClient)
         {
             m_network.startClient(remoteIp);
+            int count = 0;
+            while (!m_network.isValidClient(remoteIp))
+            {
+                try
+                {
+                    Thread.sleep(100);
+                }
+                catch (InterruptedException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
+                count++;
+                if (count > 10)
+                {
+                    break;
+                }
+            }
         }
         
         return proxy;

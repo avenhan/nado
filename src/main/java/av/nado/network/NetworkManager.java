@@ -76,4 +76,9 @@ public class NetworkManager
     {
         return m_network.send(type, ip, obj);
     }
+    
+    public boolean isValidClient(RemoteIp ip) throws AException
+    {
+        return m_network.isValidClient(ip);
+    }
 }

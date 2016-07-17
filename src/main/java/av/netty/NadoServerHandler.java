@@ -42,7 +42,7 @@ public class NadoServerHandler extends SimpleChannelHandler
             return;
         }
         
-        Trace.print("server receive: {}", (String) e.getMessage());
+        // Trace.print("server receive: {}", (String) e.getMessage());
         info.recieve((String) e.getMessage());
     }
     

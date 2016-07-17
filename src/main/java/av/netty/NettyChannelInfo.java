@@ -132,7 +132,9 @@ public class NettyChannelInfo
     
     public long postMessage(NettySendInfo info)
     {
-        Trace.print("ip: {} post command: {} len: {} message: {}", ip, info.getWrap().getCommand(), info.getJson().length(), info.getWrap().getMsg());
+        // Trace.print("ip: {} post command: {} len: {} message: {}", ip,
+        // info.getWrap().getCommand(), info.getJson().length(),
+        // info.getWrap().getMsg());
         return postBaseMessage(info, false);
     }
     
@@ -276,7 +278,8 @@ public class NettyChannelInfo
                 // can explain to json
                 lastCanbeJsonTime = System.currentTimeMillis();
                 buffer = buffer.substring(aggregate.getFirst() + json.length());
-                Trace.print("ip: {} get one json: [{}] left: [{}]", ip, json, buffer);
+                // Trace.print("ip: {} get one json: [{}] left: [{}]", ip, json,
+                // buffer);
                 onReceiveMessage(json);
                 continue;
             }

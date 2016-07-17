@@ -71,7 +71,6 @@ public class NettyAction<T> implements Runnable
         }
         catch (Exception e1)
         {
-            // TODO Auto-generated catch block
             e1.printStackTrace();
             retObject = e1;
         }
