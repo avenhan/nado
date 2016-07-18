@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import av.nado.remote.NadoRemote;
 import av.nado.util.CompareKey;
@@ -20,6 +23,8 @@ import av.nado.util.JsonUtil;
  */
 public class TestClient
 {
+    private static ScheduledExecutorService m_schedule = null;
+    
     public static void main(String[] args) throws Exception
     {
         TestServer.main1(args);
@@ -28,6 +33,23 @@ public class TestClient
         
         test();
         
+        m_schedule = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        
+        m_schedule.scheduleWithFixedDelay(new Runnable()
+        {
+            
+            public void run()
+            {
+                try
+                {
+                    test();
+                }
+                catch (Exception e)
+                {
+                    // TODO: handle exception
+                }
+            }
+        }, 100, 5000, TimeUnit.MILLISECONDS);
     }
     
     private static void test()

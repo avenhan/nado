@@ -360,7 +360,14 @@ public class NettyManager
             NettyController<?> controller = m_mapController.get(objParam.getClass());
             if (controller == null)
             {
-                throw new AException(AException.ERR_NOT_FOUND, "not found controller type: {}", objParam.getClass().getName());
+                boolean isPost = true;
+                if (sendInfo != null && sendInfo.isPost())
+                {
+                    isPost = sendInfo.isPost();
+                }
+                
+                throw new AException(AException.ERR_NOT_FOUND, "ip: {} not found controller type: {} seq:{} is post: {}", info.getIp(),
+                        objParam.getClass().getName(), wrap.getSeq(), isPost);
             }
             
             NettyAction action = new NettyAction();

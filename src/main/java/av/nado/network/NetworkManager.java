@@ -17,6 +17,7 @@ public class NetworkManager
     private static NetworkManager           m_pThis;
     private NetworkType                     m_networkType;
     private BaseNetwork                     m_network;
+    private Map<String, RemoteIp>           m_mapConnectedIps = new HashMap<String, RemoteIp>();
     
     private static Map<String, NetworkType> m_mapType = new HashMap<String, NetworkType>();
     
@@ -67,9 +68,39 @@ public class NetworkManager
         m_network.startServer(port);
     }
     
-    public void startClient(RemoteIp ip) throws AException
+    public RemoteIp startClient(RemoteIp ip) throws AException
     {
+        RemoteIp ipExisted = m_mapConnectedIps.get(ip.toString());
+        if (ipExisted != null)
+        {
+            return ipExisted;
+        }
+        
         m_network.startClient(ip);
+        
+        int count = 0;
+        while (!m_network.isValidClient(ip))
+        {
+            try
+            {
+                Thread.sleep(100);
+            }
+            catch (InterruptedException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            count++;
+            if (count > 10)
+            {
+                break;
+            }
+        }
+        
+        ip.setLastConnectedTime(System.currentTimeMillis());
+        m_mapConnectedIps.put(ip.toString(), ip);
+        return ip;
     }
     
     public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException

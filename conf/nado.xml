@@ -9,7 +9,7 @@
 	<bootstrap>
 	    <!-- protocol can be: netty, http -->
 	    <protocol>netty</protocol>
-	    <port>9000</port>
+	    <port>9009</port>
 	</bootstrap>
 	
 	<!-- remote ip list -->

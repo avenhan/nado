@@ -1,5 +1,6 @@
 package av.nado.register.redis;
 
+import java.util.Map;
 import java.util.Set;
 
 import av.nado.register.Register;
@@ -78,6 +79,12 @@ public class RedisRegister implements Register
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
     {
         m_setIps = lstIps;
+    }
+    
+    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
     
 }

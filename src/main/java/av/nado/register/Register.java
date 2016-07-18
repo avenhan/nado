@@ -1,5 +1,6 @@
 package av.nado.register;
 
+import java.util.Map;
 import java.util.Set;
 
 import av.nado.remote.NadoProxy;
@@ -13,4 +14,6 @@ public interface Register
     public void registerProxy(String key, String addr) throws AException;
     
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException;
+    
+    public Map<String, NadoProxy> loadRemoteIps() throws AException;
 }

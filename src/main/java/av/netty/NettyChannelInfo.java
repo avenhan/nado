@@ -232,7 +232,8 @@ public class NettyChannelInfo
         }
         
         long seq = info.getWrap().getSeq();
-        // Trace.print("ip: {} post msg seq: {}", ip, seq);
+        // Trace.print("ip: {} post msg seq: {} is post: {}", ip, seq,
+        // info.isPost());
         
         if (!channel.isConnected() || !channel.isOpen())
         {
@@ -243,10 +244,9 @@ public class NettyChannelInfo
         info.setSentTime(System.currentTimeMillis());
         info.setSendCount(info.getSendCount() + 1);
         
-        channel.write(info.getJson());
-        
         if (redo || isServer)
         {
+            channel.write(info.getJson());
             return seq;
         }
         
@@ -258,6 +258,8 @@ public class NettyChannelInfo
                 mapSent.put(seq, info);
             }
         }
+        
+        channel.write(info.getJson());
         return seq;
     }
     

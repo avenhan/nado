@@ -98,4 +98,9 @@ public class RegisterManager
     {
         m_register.registerProxy(key, addr);
     }
+    
+    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    {
+        return m_register.loadRemoteIps();
+    }
 }

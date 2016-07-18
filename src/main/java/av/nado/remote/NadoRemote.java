@@ -1,5 +1,6 @@
 package av.nado.remote;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,6 +52,7 @@ public class NadoRemote
             RegisterManager.instance().setAddress(setting.getRegister().get(NadoSetting.KEY_ADDRESS));
             
             m_network.setNetworkType(setting.getBootstrap());
+            loadRemoteAddress();
         }
         catch (Exception e)
         {
@@ -159,31 +161,31 @@ public class NadoRemote
         }
         
         proxy = RegisterManager.instance().findProxy(key);
+        connectClient(proxy);
+        return proxy;
+    }
+    
+    private void loadRemoteAddress() throws AException
+    {
+        Map<String, NadoProxy> mapProxy = RegisterManager.instance().loadRemoteIps();
+        for (Map.Entry<String, NadoProxy> entry : mapProxy.entrySet())
+        {
+            connectClient(entry.getValue());
+        }
+        
+        m_mapProxy.putAll(mapProxy);
+    }
+    
+    private void connectClient(NadoProxy proxy) throws AException
+    {
+        List<RemoteIp> lstConnectedIps = new ArrayList<RemoteIp>();
         List<RemoteIp> lstClient = proxy.getLstRemoteIps();
         for (RemoteIp remoteIp : lstClient)
         {
-            m_network.startClient(remoteIp);
-            int count = 0;
-            while (!m_network.isValidClient(remoteIp))
-            {
-                try
-                {
-                    Thread.sleep(100);
-                }
-                catch (InterruptedException e)
-                {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-                
-                count++;
-                if (count > 10)
-                {
-                    break;
-                }
-            }
+            RemoteIp ip = m_network.startClient(remoteIp);
+            lstConnectedIps.add(ip);
         }
         
-        return proxy;
+        proxy.setLstRemoteIps(lstConnectedIps);
     }
 }

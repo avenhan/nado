@@ -1,6 +1,8 @@
 package av.nado.register.zookeeper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
@@ -72,6 +74,29 @@ public class ZookRegister implements Register
         
         Zookeeper.instance().loadConfig(setting);
         Zookeeper.instance().create(KEY_NADO_ROOT, "");
+    }
+    
+    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    {
+        Map<String, NadoProxy> mapRet = new HashMap<String, NadoProxy>();
+        
+        List<String> lstKeys = Zookeeper.instance().children(KEY_NADO_ROOT);
+        for (String key : lstKeys)
+        {
+            StringBuilder b = new StringBuilder(KEY_NADO_ROOT).append("/").append(key);
+            List<String> lstIps = Zookeeper.instance().children(b.toString());
+            
+            NadoProxy proxy = new NadoProxy();
+            proxy.setName(key);
+            for (String ip : lstIps)
+            {
+                proxy.addIp(ip);
+            }
+            
+            mapRet.put(key, proxy);
+        }
+        
+        return mapRet;
     }
     
     public static void main(String[] args) throws Exception
