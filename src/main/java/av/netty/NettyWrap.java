@@ -5,6 +5,7 @@ public class NettyWrap
     private long    seq;
     private Command command;
     private String  msg;
+    private long    timestamp;
     
     public long getSeq()
     {
@@ -35,4 +36,15 @@ public class NettyWrap
     {
         this.msg = msg;
     }
+    
+    public long getTimestamp()
+    {
+        return timestamp;
+    }
+    
+    public void setTimestamp(long timestamp)
+    {
+        this.timestamp = timestamp;
+    }
+    
 }

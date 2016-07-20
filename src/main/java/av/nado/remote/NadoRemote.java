@@ -64,7 +64,6 @@ public class NadoRemote
     
     public Object invoke(String type, String methodName, Object... params) throws Throwable
     {
-        FunctionTime functionTime = new FunctionTime();
         try
         {
             if (Check.IfOneEmpty(type, methodName))
@@ -74,7 +73,6 @@ public class NadoRemote
             
             StringBuilder b = new StringBuilder(type).append(".").append(methodName);
             NadoProxy proxy = findProxy(b.toString(), true);
-            functionTime.addCurrentTime("proxy.{}", b.toString());
             if (proxy == null)
             {
                 throw new AException(AException.ERR_SERVER, "not found remote class: {} method: {}", type, methodName);
@@ -84,7 +82,6 @@ public class NadoRemote
         }
         finally
         {
-            functionTime.print();
         }
     }
     

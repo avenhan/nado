@@ -2,6 +2,7 @@ package av.netty;
 
 import av.nado.remote.NadoParam;
 import av.util.exception.AException;
+import av.util.trace.Trace;
 
 public class NettyAction<T> implements Runnable
 {
@@ -89,6 +90,8 @@ public class NettyAction<T> implements Runnable
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        
+        Trace.print("seq: {} action finished at: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
     }
     
 }

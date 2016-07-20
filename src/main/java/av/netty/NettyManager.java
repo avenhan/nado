@@ -189,6 +189,7 @@ public class NettyManager
         wrap.setSeq(Sequence.getSequence());
         wrap.setMsg(NadoParam.toExplain(msg));
         wrap.setCommand(Command.NC_USER);
+        wrap.setTimestamp(System.currentTimeMillis());
         
         return post(info, wrap);
     }
@@ -229,6 +230,7 @@ public class NettyManager
         wrap.setSeq(Sequence.getSequence());
         wrap.setMsg(NadoParam.toExplain(msg));
         wrap.setCommand(Command.NC_USER);
+        wrap.setTimestamp(System.currentTimeMillis());
         
         NettyWrap ret = send(info, wrap);
         if (ret == null)
@@ -256,6 +258,7 @@ public class NettyManager
         sent.setSendCount(0);
         sent.setSentTime(0);
         sent.setWrap(wrap);
+        sent.setObjFire(new Object());
         
         NettyWrap ret = info.sendMessage(sent);
         if (ret == null)
@@ -377,6 +380,7 @@ public class NettyManager
             action.setController(controller);
             action.setObjParam(objParam);
             
+            Trace.print("seq: {} receive and will do action at time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
             m_threadPool.execute(action);
         }
         catch (Exception e)

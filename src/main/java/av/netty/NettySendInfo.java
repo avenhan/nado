@@ -10,6 +10,8 @@ public class NettySendInfo
     private NettyWrap recv;
     private boolean   isPost = true;
     
+    private Object    objFire;
+    
     public NettyWrap getWrap()
     {
         return wrap;
@@ -80,4 +82,13 @@ public class NettySendInfo
         this.isPost = isPost;
     }
     
+    public Object getObjFire()
+    {
+        return objFire;
+    }
+    
+    public void setObjFire(Object objFire)
+    {
+        this.objFire = objFire;
+    }
 }

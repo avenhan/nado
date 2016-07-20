@@ -88,6 +88,11 @@ public class Trace
     
     public static String print(String format, Object... objs)
     {
+        return print(false, format, objs);
+    }
+    
+    public static String print(boolean isTrace, String format, Object... objs)
+    {
         if (!m_isGetTrace)
         {
             return "";
@@ -98,8 +103,17 @@ public class Trace
             return "";
         }
         
+        StackTraceElement trace = ((new Exception()).getStackTrace())[1];
         String[] arr = format.split("\\{\\}");
-        StringBuilder b = new StringBuilder();
+        StringBuilder b = null;
+        if (isTrace)
+        {
+            b = new StringBuilder(trace.getClassName()).append(".").append(trace.getMethodName()).append("().").append(trace.getLineNumber());
+        }
+        else
+        {
+            b = new StringBuilder();
+        }
         
         int index = 0;
         for (Object obj : objs)

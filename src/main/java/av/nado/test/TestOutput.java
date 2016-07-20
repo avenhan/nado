@@ -12,6 +12,12 @@ import av.util.exception.AException;
 public class TestOutput
 {
     @Remote
+    public List<Integer> testNull()
+    {
+        return null;
+    }
+    
+    @Remote
     public List<Integer> testMap(Map<CompareKey, Object> mapCondition, long pos, int limit)
     {
         List<Integer> lstRet = new ArrayList<Integer>();

@@ -83,7 +83,7 @@ public class FunctionTime
         long endTime = System.currentTimeMillis();
         long timeWaste = endTime - startTime;
         
-        add(Trace.print(format, objs), new StringBuffer("").append(timeWaste).append("ms").toString());
+        add(Trace.print(false, format, objs), new StringBuffer("").append(timeWaste).append("ms").toString());
     }
     
     public void add(String key, Object value)

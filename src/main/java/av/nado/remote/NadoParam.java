@@ -47,33 +47,33 @@ public class NadoParam
             }
             else if (param instanceof Throwable)
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(Throwable.class.getName()).append(":").append(hessianEncode(param));
             }
             else if (param instanceof String)
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(String.class.getName()).append(":{").append(param).append("}");
             }
             else if (param instanceof Integer || param instanceof Long || param instanceof Double || param instanceof Boolean
                     || param instanceof BigDecimal)
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(param.getClass().getName()).append(":").append(param.toString());
             }
             else if (param instanceof Collection<?>)
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createCollectionExplain(param);
             }
             else if (param instanceof Map<?, ?>)
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createMapExplain(param);
             }
             else
             {
-                fuTime.add("type", param.getClass().getName());
+                fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(param.getClass().getName()).append(":{").append(JsonUtil.toJson(param)).append("}");
             }
             

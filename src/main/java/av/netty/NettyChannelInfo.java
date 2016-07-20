@@ -15,6 +15,7 @@ import av.nado.util.Aggregate;
 import av.nado.util.Check;
 import av.nado.util.JsonUtil;
 import av.util.exception.AException;
+import av.util.trace.FunctionTime;
 import av.util.trace.Trace;
 
 public class NettyChannelInfo
@@ -80,8 +81,14 @@ public class NettyChannelInfo
         this.recvs = recvs;
     }
     
-    public NettyWrap sendMessage(NettySendInfo info)
+    public NettyWrap sendMessage(NettySendInfo info) throws AException
     {
+        Object objFire = info.getObjFire();
+        if (objFire == null)
+        {
+            throw new AException(AException.ERR_SERVER, "invalid parameter");
+        }
+        
         info.setPost(false);
         long seq = postMessage(info);
         if (seq < 0)
@@ -89,45 +96,37 @@ public class NettyChannelInfo
             return null;
         }
         
-        NettySendInfo sndInfo = null;
         long startListenTime = System.currentTimeMillis();
         
         while (true)
         {
-            synchronized (mapSent)
+            try
             {
-                try
+                synchronized (objFire)
                 {
-                    mapSent.wait(KEY_TIME_SEND_WATE);
+                    objFire.wait(KEY_TIME_SEND_WATE);
                 }
-                catch (InterruptedException e)
-                {
-                    logger.catching(e);
-                }
-                
-                sndInfo = mapSent.get(seq);
-                if (sndInfo == null)
-                {
-                    Trace.debug("do not found send seq: {} info", seq);
-                    return null;
-                }
-                
-                if (sndInfo.getRecv() == null)
-                {
-                    if (System.currentTimeMillis() - startListenTime + KEY_TIME_SEND_WATE >= KEY_TIME_TO_RESENT)
-                    {
-                        postBaseMessage(sndInfo, true);
-                    }
-                    
-                    continue;
-                }
-                
-                mapSent.remove(seq);
-                break;
             }
+            catch (InterruptedException e)
+            {
+                logger.catching(e);
+            }
+            
+            if (info.getRecv() == null)
+            {
+                if (System.currentTimeMillis() - startListenTime + KEY_TIME_SEND_WATE >= KEY_TIME_TO_RESENT)
+                {
+                    postBaseMessage(info, true);
+                }
+                
+                continue;
+            }
+            
+            mapSent.remove(seq);
+            break;
         }
         
-        return sndInfo.getRecv();
+        return info.getRecv();
     }
     
     public long postMessage(NettySendInfo info)
@@ -232,8 +231,8 @@ public class NettyChannelInfo
         }
         
         long seq = info.getWrap().getSeq();
-        // Trace.print("ip: {} post msg seq: {} is post: {}", ip, seq,
-        // info.isPost());
+        Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms", ip, seq, info.isPost(),
+                System.currentTimeMillis() - info.getWrap().getTimestamp());
         
         if (!channel.isConnected() || !channel.isOpen())
         {
@@ -253,10 +252,7 @@ public class NettyChannelInfo
         mapPost.put(seq, info);
         if (!info.isPost())
         {
-            synchronized (mapSent)
-            {
-                mapSent.put(seq, info);
-            }
+            mapSent.put(seq, info);
         }
         
         channel.write(info.getJson());
@@ -320,6 +316,8 @@ public class NettyChannelInfo
             return;
         }
         
+        Trace.print("seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+        
         if (isServer)
         {
             netty.onReceiveMessage(this, wrap, null);
@@ -329,6 +327,7 @@ public class NettyChannelInfo
         NettySendInfo info = onReceiveAck(wrap);
         if (info != null && !info.isPost())
         {
+            Trace.print("2 .... seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
             // is send routine, do not on receive message
             return;
         }
@@ -339,25 +338,37 @@ public class NettyChannelInfo
     
     private NettySendInfo onReceiveAck(NettyWrap wrap)
     {
-        long seq = wrap.getSeq();
-        NettySendInfo info = mapPost.remove(seq);
-        if (info == null)
+        FunctionTime functionTime = new FunctionTime();
+        try
         {
-            return null;
-        }
-        // Trace.print("client rcv ack seq: {}, left size: {}", seq,
-        // mapPost.size());
-        
-        if (info.isPost())
-        {
+            long seq = wrap.getSeq();
+            functionTime.addCurrentTime("seq[{}] time[{}]ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+            
+            NettySendInfo info = mapPost.remove(seq);
+            if (info == null)
+            {
+                return null;
+            }
+            // Trace.print("client rcv ack seq: {}, left size: {}", seq,
+            // mapPost.size());
+            
+            if (info.isPost())
+            {
+                return info;
+            }
+            
+            info.setRecv(wrap);
+            Object objFire = info.getObjFire();
+            synchronized (objFire)
+            {
+                objFire.notify();
+            }
+            
             return info;
         }
-        
-        info.setRecv(wrap);
-        synchronized (mapSent)
+        finally
         {
-            mapSent.notifyAll();
+            functionTime.print();
         }
-        return info;
     }
 }

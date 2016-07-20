@@ -7,78 +7,83 @@ import av.nado.remote.NadoParam;
 import av.nado.remote.NadoResponse;
 import av.nado.remote.NadoWrap;
 import av.nado.util.Check;
-import av.nado.util.JsonUtil;
 import av.netty.NettyController;
 import av.util.exception.AException;
-import av.util.trace.Trace;
+import av.util.trace.FunctionTime;
 
 public class NadoController implements NettyController<NadoWrap>
 {
     
     public Object receive(NadoWrap rqst) throws Exception
     {
+        FunctionTime functionTime = new FunctionTime();
+        
         try
         {
-            Trace.print("nado controller receive: {}", JsonUtil.toJson(rqst));
-        }
-        catch (AException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        String type = rqst.getType();
-        String method = rqst.getMethod();
-        Object[] arrParam = null;
-        List<String> lstParamExplain = rqst.getParams();
-        if (!Check.IfOneEmpty(lstParamExplain))
-        {
-            arrParam = new Object[lstParamExplain.size()];
-            for (int i = 0; i < lstParamExplain.size(); i++)
+
+            String type = rqst.getType();
+            String method = rqst.getMethod();
+            functionTime.addCurrentTime("{}.{}", type, method);
+            
+            Object[] arrParam = null;
+            List<String> lstParamExplain = rqst.getParams();
+            if (!Check.IfOneEmpty(lstParamExplain))
             {
-                Object param = null;
-                switch (rqst.getParamType())
+                arrParam = new Object[lstParamExplain.size()];
+                for (int i = 0; i < lstParamExplain.size(); i++)
                 {
-                    case NadoWrap.KEY_PARAM_TYPE_JSON:
-                        param = NadoParam.fromExplain(lstParamExplain.get(i));
-                        break;
-                    case NadoWrap.KEY_PARAM_TYPE_SERIALIZE:
-                        param = NadoParam.deserialized(lstParamExplain.get(i));
-                        break;
-                    
-                    case NadoWrap.KEY_PARAM_TYPE_HESSIAN:
-                        param = NadoParam.hessionDecode(lstParamExplain.get(i));
-                        break;
-                    
-                    default:
-                        throw new AException(AException.ERR_SERVER, "unkown param type: {}", rqst.getParamType());
+                    Object param = null;
+                    switch (rqst.getParamType())
+                    {
+                        case NadoWrap.KEY_PARAM_TYPE_JSON:
+                            param = NadoParam.fromExplain(lstParamExplain.get(i));
+                            break;
+                        case NadoWrap.KEY_PARAM_TYPE_SERIALIZE:
+                            param = NadoParam.deserialized(lstParamExplain.get(i));
+                            break;
+                        
+                        case NadoWrap.KEY_PARAM_TYPE_HESSIAN:
+                            param = NadoParam.hessionDecode(lstParamExplain.get(i));
+                            break;
+                        
+                        default:
+                            throw new AException(AException.ERR_SERVER, "unkown param type: {}", rqst.getParamType());
+                    }
+                    arrParam[i] = param;
                 }
-                arrParam[i] = param;
             }
-        }
-        
-        Object ret = null;
-        try
-        {
-            if (arrParam == null)
+            
+            functionTime.addCurrentTime("params");
+            
+            Object ret = null;
+            try
             {
-                ret = NadoManager.instance().invoke(type, method);
+                if (arrParam == null)
+                {
+                    ret = NadoManager.instance().invoke(type, method);
+                }
+                else
+                {
+                    ret = NadoManager.instance().invoke(type, method, arrParam);
+                }
             }
-            else
+            catch (Exception e)
             {
-                ret = NadoManager.instance().invoke(type, method, arrParam);
+                ret = e;
             }
+            
+            functionTime.addCurrentTime("invoke");
+            String retExplain = NadoParam.toExplain(ret);
+            NadoResponse rspd = new NadoResponse();
+            rspd.setBody(retExplain);
+            
+            functionTime.addCurrentTime("ret");
+            return rspd;
         }
-        catch (Exception e)
+        finally
         {
-            ret = e;
+            functionTime.print();
         }
-        
-        String retExplain = NadoParam.toExplain(ret);
-        NadoResponse rspd = new NadoResponse();
-        rspd.setBody(retExplain);
-        
-        return rspd;
     }
     
 }

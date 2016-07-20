@@ -88,11 +88,12 @@ public class TestClient
             ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testObject", testRemote);
             System.out.println(JsonUtil.toJson(ret));
             
-            // test throw
-            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", false);
+
+            ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testNull");
             
             try
             {
+                // test throw
                 ret = NadoRemote.instance().invoke("av.nado.test.TestOutput", "testThrow", true);
             }
             catch (Exception e)
