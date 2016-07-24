@@ -17,7 +17,6 @@ import av.nado.util.Check;
 import av.nado.util.XmlUtil;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
-import av.util.trace.Trace;
 
 public class NadoRemote
 {
@@ -90,7 +89,7 @@ public class NadoRemote
         FunctionTime functionTime = new FunctionTime();
         try
         {
-            functionTime.addCurrentTime("{}.{}.{}", type, method, params.length);
+            functionTime.addCurrentTime("{}.{}", type, method);
             RemoteIp ip = getUsefulRemoteIp(proxy);
             if (ip == null)
             {
@@ -103,9 +102,12 @@ public class NadoRemote
             wrap.setType(type);
             wrap.setMethod(method);
             
-            for (Object param : params)
+            if (params != null)
             {
-                wrap.addParam(param);
+                for (Object param : params)
+                {
+                    wrap.addParam(param);
+                }
             }
             
             Aggregate<NetworkStatus, NadoResponse> aggregate = m_network.send(NadoResponse.class, ip, wrap);
@@ -116,7 +118,6 @@ public class NadoRemote
             
             String retExplain = aggregate.getSecond().getBody();
             functionTime.addCurrentTime("decode");
-            Trace.debug("nado ret: {}", retExplain);
             
             Object objRet = NadoParam.fromExplain(retExplain);
             if (objRet instanceof Throwable)

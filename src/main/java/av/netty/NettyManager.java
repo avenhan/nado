@@ -30,6 +30,7 @@ import av.nado.util.Check;
 import av.nado.util.JsonUtil;
 import av.sequence.Sequence;
 import av.util.exception.AException;
+import av.util.trace.FunctionTime;
 import av.util.trace.Trace;
 
 public class NettyManager
@@ -250,25 +251,35 @@ public class NettyManager
             throw new AException(AException.ERR_SERVER, "channel info or wrap is null");
         }
         
-        String json = JsonUtil.toJson(wrap);
+        FunctionTime time = new FunctionTime();
         
-        NettySendInfo sent = new NettySendInfo();
-        sent.setCreateTime(System.currentTimeMillis());
-        sent.setJson(NettySignature.signature(json));
-        sent.setSendCount(0);
-        sent.setSentTime(0);
-        sent.setWrap(wrap);
-        sent.setObjFire(new Object());
-        
-        NettyWrap ret = info.sendMessage(sent);
-        if (ret == null)
+        try
         {
-            return null;
+            String json = JsonUtil.toJson(wrap);
+            time.addCurrentTime("json");
+            
+            NettySendInfo sent = new NettySendInfo();
+            sent.setCreateTime(System.currentTimeMillis());
+            sent.setJson(NettySignature.signature(json));
+            sent.setSendCount(0);
+            sent.setSentTime(0);
+            sent.setWrap(wrap);
+            sent.setObjFire(new Object());
+            
+            NettyWrap ret = info.sendMessage(sent);
+            if (ret == null)
+            {
+                return null;
+            }
+            
+            Trace.print(".........send seq: {} receive seq: {} time waste: {}ms", wrap.getSeq(), ret.getSeq(),
+                    (System.currentTimeMillis() - sent.getCreateTime()));
+            return ret;
         }
-        
-        Trace.print(".........send seq: {} receive seq: {} time waste: {}ms", wrap.getSeq(), ret.getSeq(),
-                (System.currentTimeMillis() - sent.getCreateTime()));
-        return ret;
+        finally
+        {
+            time.print();
+        }
     }
     
     public boolean isValid(RemoteIp addr)

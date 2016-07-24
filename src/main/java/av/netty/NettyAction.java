@@ -65,6 +65,8 @@ public class NettyAction<T> implements Runnable
     
     public void run()
     {
+        Trace.print("seq: {} action begin at: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+        
         Object retObject = null;
         try
         {

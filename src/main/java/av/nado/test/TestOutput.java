@@ -9,7 +9,7 @@ import av.nado.annotation.Remote;
 import av.nado.util.CompareKey;
 import av.util.exception.AException;
 
-public class TestOutput
+public class TestOutput implements TestOutputInter
 {
     @Remote
     public List<Integer> testNull()

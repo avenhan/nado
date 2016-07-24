@@ -8,9 +8,12 @@ import av.nado.util.Aggregate;
 import av.nado.util.Check;
 import av.netty.NettyManager;
 import av.util.exception.AException;
+import av.util.trace.FunctionTime;
 
 public class NadoNetty implements BaseNetwork
 {
+    private static NettyManager nettyManager = NettyManager.instance();
+    
     public void startServer(int port) throws AException
     {
         NettyManager.instance().startServer(port, 0);
@@ -24,22 +27,31 @@ public class NadoNetty implements BaseNetwork
     
     public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException
     {
-        Object ret = NettyManager.instance().send(ip, obj);
+        FunctionTime time = new FunctionTime();
         
-        Aggregate<NetworkStatus, R> aggregate = new Aggregate<NetworkStatus, R>();
-        if (Check.IfOneEmpty(ret))
+        try
         {
-            aggregate.put(NetworkStatus.NETWORK_STATUS_FAILED, null);
+            Object ret = nettyManager.send(ip, obj);
+            time.addCurrentTime("send");
+            
+            R r = null;
+            Aggregate<NetworkStatus, R> aggregate = new Aggregate<NetworkStatus, R>();
+            if (Check.IfOneEmpty(ret))
+            {
+                aggregate.put(NetworkStatus.NETWORK_STATUS_FAILED, null);
+            }
+            else
+            {
+                r = type.cast(ret);
+                aggregate.put(NetworkStatus.NETWORK_STATUS_SUCCESS, r);
+            }
+            
+            return aggregate;
         }
-        
-        R r = null; // JsonUtil.toObject(type, ret);
-        if (ret != null)
+        finally
         {
-            r = type.cast(ret);
+            time.print();
         }
-        aggregate.put(NetworkStatus.NETWORK_STATUS_SUCCESS, r);
-        
-        return aggregate;
     }
     
     public boolean isValidClient(RemoteIp ip) throws AException

@@ -591,7 +591,6 @@ public class NadoParam
         }
         
         String valueTypeName = value.substring(0, index);
-        
         value = value.substring(index + 1);
         
         try

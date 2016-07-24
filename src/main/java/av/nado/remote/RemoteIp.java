@@ -17,6 +17,7 @@ public class RemoteIp
     private long               lastConnectedTime = 0;
     private long               readCount         = 0;
     private String             url;
+    private Object             attachment        = null;
     
     public static RemoteIp getRemoteIp(SocketAddress addr)
     {
@@ -153,4 +154,13 @@ public class RemoteIp
         this.url = url;
     }
     
+    public Object getAttachment()
+    {
+        return attachment;
+    }
+    
+    public void setAttachment(Object attachment)
+    {
+        this.attachment = attachment;
+    }
 }
