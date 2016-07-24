@@ -18,6 +18,7 @@ import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.FixedReceiveBufferSizePredictorFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.string.StringDecoder;
@@ -36,7 +37,7 @@ import av.util.trace.Trace;
 public class NettyManager
 {
     public static final int                   MAX_THREAD_COUNT = 100;
-    public static final int                   MAX_CACHED_SIZE  = 100;
+    public static final int                   MAX_CACHED_SIZE  = 1024;
     
     private static NettyManager               m_pThis;
     private ScheduledExecutorService          m_schedule;
@@ -147,8 +148,11 @@ public class NettyManager
                 return pipeline;
             }
         });
+        
         bootstrap.setOption("tcpNoDelay", true);
         bootstrap.setOption("keepAlive", true);
+        bootstrap.setOption("receiveBufferSizePredictorFactory", new FixedReceiveBufferSizePredictorFactory(256));
+        
         bootstrap.connect(new InetSocketAddress(ip.getIp(), ip.getPort()));
     }
     
@@ -444,61 +448,68 @@ public class NettyManager
         NettyManager.instance().bind(String.class, NadoTestController.class);
         NettyManager.instance().startClient(RemoteIp.getRemoteIp("127.0.0.1:" + port));
         
-        java.util.Timer timer = new java.util.Timer(false);
-        java.util.TimerTask task = new java.util.TimerTask()
+        ScheduledExecutorService schedule = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        
+        schedule.scheduleWithFixedDelay(new Runnable()
         {
             private long times = 0;
             
-            @Override
             public void run()
             {
-                System.out.println("\n\n\n需要定时执行的任务...");
-                
                 try
                 {
-                    while (!NettyManager.instance().isValid(RemoteIp.getRemoteIp("127.0.0.1:" + port)))
-                    {
-                        try
-                        {
-                            Thread.sleep(200);
-                        }
-                        catch (InterruptedException e)
-                        {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                    }
-                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
-                    times++;
-                    
-                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
-                    times++;
-                    
-                    NettyManager.instance().post(RemoteIp.getRemoteIp("127.0.0.1:" + port), "send msg: " + times);
-                    times++;
-                }
-                catch (AException e)
-                {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    times = testSendMsg(times, port);
                 }
                 catch (Throwable e)
                 {
                     // TODO: handle exception
                 }
             }
-        };
-        
-        java.util.Date time = new java.util.Date();
-        long period = 5000;
-        
-        // 启动定时任务，立即执行壹次，然后每隔两秒执行壹次
-        timer.schedule(task, time, period);
+        }, 100, 5000, TimeUnit.MILLISECONDS);
         
         while (true)
         {
             Thread.sleep(10000);
             System.out.println("is end .sleep......................########");
         }
+    }
+    
+    private static long testSendMsg(long times, int port) throws Throwable
+    {
+        System.out.println("\n\n\n需要定时执行的任务...");
+        
+        while (!NettyManager.instance().isValid(RemoteIp.getRemoteIp("127.0.0.1:" + port)))
+        {
+            try
+            {
+                Thread.sleep(200);
+            }
+            catch (InterruptedException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), getString(times));
+        times++;
+        
+        NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), getString(times));
+        times++;
+        
+        NettyManager.instance().send(RemoteIp.getRemoteIp("127.0.0.1:" + port), getString(times));
+        times++;
+        
+        return times;
+    }
+    
+    private static String getString(long times)
+    {
+        StringBuilder b = new StringBuilder("start: ");
+        for (int i = 0; i < 1; i++)
+        {
+            b.append(i).append("-");
+        }
+        
+        return b.toString();
     }
 }

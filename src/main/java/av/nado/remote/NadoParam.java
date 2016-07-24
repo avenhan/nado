@@ -81,7 +81,7 @@ public class NadoParam
         }
         finally
         {
-            fuTime.print();
+            // fuTime.print();
         }
     }
     
@@ -191,7 +191,7 @@ public class NadoParam
         }
         finally
         {
-            functionTime.print();
+            // functionTime.print();
         }
     }
     
