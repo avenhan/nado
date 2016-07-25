@@ -268,7 +268,6 @@ public class NettyManager
             sent.setSendCount(0);
             sent.setSentTime(0);
             sent.setWrap(wrap);
-            sent.setObjFire(new Object());
             
             NettyWrap ret = info.sendMessage(sent);
             if (ret == null)

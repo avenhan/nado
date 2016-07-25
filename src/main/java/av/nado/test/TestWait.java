@@ -1,5 +1,7 @@
 package av.nado.test;
 
+import java.util.concurrent.Semaphore;
+
 public class TestWait
 {
     static long printTime = 0;
@@ -7,6 +9,8 @@ public class TestWait
     {
         final Object object = new Object();
         
+        final Semaphore semp = new Semaphore(5);
+
 
         Runnable runA = new Runnable() {
             public void run() {

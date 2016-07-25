@@ -83,12 +83,8 @@ public class NettyChannelInfo
     
     public NettyWrap sendMessage(NettySendInfo info) throws AException
     {
-        Object objFire = info.getObjFire();
-        if (objFire == null)
-        {
-            throw new AException(AException.ERR_SERVER, "invalid parameter");
-        }
-        
+        Object objFire = new Object();
+        info.setObjFire(objFire);
         info.setPost(false);
         long seq = postMessage(info);
         if (seq < 0)
@@ -352,13 +348,13 @@ public class NettyChannelInfo
             // Trace.print("client rcv ack seq: {}, left size: {}", seq,
             // mapPost.size());
             
-            if (info.isPost())
+            Object objFire = info.getObjFire();
+            if (objFire == null)
             {
                 return info;
             }
             
             info.setRecv(wrap);
-            Object objFire = info.getObjFire();
             synchronized (objFire)
             {
                 objFire.notify();
