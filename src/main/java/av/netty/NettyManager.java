@@ -109,6 +109,7 @@ public class NettyManager
         
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
+            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -139,6 +140,7 @@ public class NettyManager
         ClientBootstrap bootstrap = new ClientBootstrap(factory);
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
+            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -151,7 +153,7 @@ public class NettyManager
         
         bootstrap.setOption("tcpNoDelay", true);
         bootstrap.setOption("keepAlive", true);
-        bootstrap.setOption("receiveBufferSizePredictorFactory", new FixedReceiveBufferSizePredictorFactory(256));
+        bootstrap.setOption("receiveBufferSizePredictorFactory", new FixedReceiveBufferSizePredictorFactory(4096));
         
         bootstrap.connect(new InetSocketAddress(ip.getIp(), ip.getPort()));
     }
@@ -453,6 +455,7 @@ public class NettyManager
         {
             private long times = 0;
             
+            @Override
             public void run()
             {
                 try

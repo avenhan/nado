@@ -4,7 +4,6 @@ import java.util.List;
 
 import av.nado.base.NadoManager;
 import av.nado.remote.NadoParam;
-import av.nado.remote.NadoResponse;
 import av.nado.remote.NadoWrap;
 import av.nado.util.Check;
 import av.netty.NettyController;
@@ -14,6 +13,7 @@ import av.util.trace.FunctionTime;
 public class NadoController implements NettyController<NadoWrap>
 {
     
+    @Override
     public Object receive(NadoWrap rqst) throws Exception
     {
         FunctionTime functionTime = new FunctionTime();
@@ -73,12 +73,7 @@ public class NadoController implements NettyController<NadoWrap>
             }
             
             functionTime.addCurrentTime("invoke");
-            String retExplain = NadoParam.toExplain(ret);
-            NadoResponse rspd = new NadoResponse();
-            rspd.setBody(retExplain);
-            
-            functionTime.addCurrentTime("ret");
-            return rspd;
+            return ret;
         }
         finally
         {

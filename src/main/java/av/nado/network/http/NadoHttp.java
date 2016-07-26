@@ -7,6 +7,8 @@ import org.apache.http.HttpStatus;
 
 import av.nado.network.BaseNetwork;
 import av.nado.network.NetworkStatus;
+import av.nado.remote.NadoParam;
+import av.nado.remote.NadoResponse;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Aggregate;
 import av.nado.util.Check;
@@ -18,21 +20,24 @@ public class NadoHttp implements BaseNetwork
 {
     private Map<String, String> mapHeader = new HashMap<String, String>();
     
+    @Override
     public void startServer(int port)
     {
         // TODO Auto-generated method stub
         
     }
     
+    @Override
     public void startClient(RemoteIp ip)
     {
         // TODO Auto-generated method stub
         
     }
     
-    public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException
+    @Override
+    public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
     {
-        if (Check.IfOneEmpty(type, ip, obj))
+        if (Check.IfOneEmpty(ip, obj))
         {
             throw new AException(AException.ERR_INVALID_PARAMETER, "invalid parameter");
         }
@@ -49,7 +54,7 @@ public class NadoHttp implements BaseNetwork
             throw new AException(AException.ERR_SERVER, "http return failed...");
         }
         
-        Aggregate<NetworkStatus, R> ret = new Aggregate<NetworkStatus, R>();
+        Aggregate<NetworkStatus, Object> ret = new Aggregate<NetworkStatus, Object>();
         if (aggregate.getFirst() == HttpStatus.SC_OK)
         {
             ret.putFirst(NetworkStatus.NETWORK_STATUS_SUCCESS);
@@ -65,12 +70,14 @@ public class NadoHttp implements BaseNetwork
             throw new AException(AException.ERR_SERVER, "http return failed...not json: {}", retJson);
         }
         
-        R r = JsonUtil.toObject(type, retJson);
-        ret.putSecond(r);
+        NadoResponse rspd = JsonUtil.toObject(NadoResponse.class, retJson);
+        Object retObject = NadoParam.fromExplain(rspd.getBody());
         
+        ret.putSecond(retObject);
         return ret;
     }
     
+    @Override
     public boolean isValidClient(RemoteIp ip) throws AException
     {
         // TODO Auto-generated method stub

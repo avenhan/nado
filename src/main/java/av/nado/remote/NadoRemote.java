@@ -110,17 +110,15 @@ public class NadoRemote
                 }
             }
             
-            Aggregate<NetworkStatus, NadoResponse> aggregate = m_network.send(NadoResponse.class, ip, wrap);
+            Aggregate<NetworkStatus, Object> aggregate = m_network.send(ip, wrap);
             if (aggregate.getFirst() != NetworkStatus.NETWORK_STATUS_SUCCESS)
             {
                 throw new AException(AException.ERR_SERVER, "no remote class: {} method: {} can be useful", type, method);
             }
             
-            String retExplain = aggregate.getSecond().getBody();
-            functionTime.addCurrentTime("decode");
             
-            Object objRet = NadoParam.fromExplain(retExplain);
-            if (objRet instanceof Throwable)
+            Object objRet = aggregate.getSecond();
+            if (objRet != null && objRet instanceof Throwable)
             {
                 Throwable throwed = (Throwable) objRet;
                 throw throwed;

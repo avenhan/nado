@@ -12,5 +12,5 @@ public interface BaseNetwork
     
     public boolean isValidClient(RemoteIp ip) throws AException;
     
-    public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException;
+    public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException;
 }

@@ -103,9 +103,9 @@ public class NetworkManager
         return ip;
     }
     
-    public <R> Aggregate<NetworkStatus, R> send(Class<R> type, RemoteIp ip, Object obj) throws AException
+    public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
     {
-        return m_network.send(type, ip, obj);
+        return m_network.send(ip, obj);
     }
     
     public boolean isValidClient(RemoteIp ip) throws AException
