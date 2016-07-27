@@ -8,8 +8,6 @@ public class NettySendInfo
     private int       sendCount;
     private String    json;
     private NettyWrap recv;
-    private boolean   isPost = true;
-    
     private Object    objFire;
     
     public NettyWrap getWrap()
@@ -74,12 +72,12 @@ public class NettySendInfo
     
     public boolean isPost()
     {
-        return isPost;
-    }
-    
-    public void setPost(boolean isPost)
-    {
-        this.isPost = isPost;
+        if (objFire != null)
+        {
+            return false;
+        }
+        
+        return true;
     }
     
     public Object getObjFire()

@@ -4,6 +4,8 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,9 +85,7 @@ public class NettyChannelInfo
     
     public NettyWrap sendMessage(NettySendInfo info) throws AException
     {
-        Object objFire = new Object();
-        info.setObjFire(objFire);
-        info.setPost(false);
+        createSyncObject(info);
         long seq = postMessage(info);
         if (seq < 0)
         {
@@ -96,17 +96,13 @@ public class NettyChannelInfo
         
         while (true)
         {
-            try
+            if (info.getRecv() != null)
             {
-                synchronized (objFire)
-                {
-                    objFire.wait(KEY_TIME_SEND_WATE);
-                }
+                mapSent.remove(seq);
+                break;
             }
-            catch (InterruptedException e)
-            {
-                logger.catching(e);
-            }
+            
+            syncObject(info);
             
             if (info.getRecv() == null)
             {
@@ -227,8 +223,8 @@ public class NettyChannelInfo
         }
         
         long seq = info.getWrap().getSeq();
-        Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms", ip, seq, info.isPost(),
-                System.currentTimeMillis() - info.getWrap().getTimestamp());
+        Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms current time: {}", ip, seq, info.isPost(),
+                System.currentTimeMillis() - info.getWrap().getTimestamp(), System.currentTimeMillis());
         
         if (!channel.isConnected() || !channel.isOpen())
         {
@@ -348,17 +344,13 @@ public class NettyChannelInfo
             // Trace.print("client rcv ack seq: {}, left size: {}", seq,
             // mapPost.size());
             
-            Object objFire = info.getObjFire();
-            if (objFire == null)
+            if (info.isPost())
             {
                 return info;
             }
             
             info.setRecv(wrap);
-            synchronized (objFire)
-            {
-                objFire.notify();
-            }
+            notifyObject(info);
             
             return info;
         }
@@ -366,5 +358,63 @@ public class NettyChannelInfo
         {
             functionTime.print();
         }
+    }
+    
+    private void createSyncObject(NettySendInfo info)
+    {
+        // Object objFire = new Object();
+        
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        
+        info.setObjFire(countDownLatch);
+    }
+    
+    private void syncObject(NettySendInfo info)
+    {
+        Object objFire = info.getObjFire();
+        if (objFire == null)
+        {
+            return;
+        }
+        
+        // try
+        // {
+        // synchronized (objFire)
+        // {
+        // objFire.wait(KEY_TIME_SEND_WATE);
+        // }
+        // }
+        // catch (InterruptedException e)
+        // {
+        // logger.catching(e);
+        // }
+        
+        CountDownLatch countDownLatch = (CountDownLatch) objFire;
+        try
+        {
+            countDownLatch.await(KEY_TIME_SEND_WATE, TimeUnit.MILLISECONDS);
+        }
+        catch (InterruptedException e1)
+        {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
+    }
+    
+    private void notifyObject(NettySendInfo info)
+    {
+        Object objFire = info.getObjFire();
+        if (objFire == null)
+        {
+            return;
+        }
+        
+        // synchronized (objFire)
+        // {
+        // objFire.notify();
+        // }
+        
+        CountDownLatch countDownLatch = (CountDownLatch) objFire;
+        countDownLatch.countDown();
     }
 }

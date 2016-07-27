@@ -7,10 +7,21 @@ public class Trace
 {
     private static Logger  logger       = LogManager.getLogger(Trace.class);
     private static boolean m_isGetTrace = true;
+    private static boolean m_isLog      = false;
     
     public static void initialize(boolean isGetTrace)
     {
         m_isGetTrace = isGetTrace;
+    }
+    
+    public static void setLog(boolean isLog)
+    {
+        m_isLog = isLog;
+    }
+    
+    public static boolean isLog()
+    {
+        return m_isLog;
     }
     
     public static boolean isGetTrace()
@@ -77,13 +88,7 @@ public class Trace
     
     public static String print(String text)
     {
-        if (!m_isGetTrace)
-        {
-            return "";
-        }
-        
-        System.out.println(text);
-        return text;
+        return print(false, text);
     }
     
     public static String print(String format, Object... objs)
@@ -140,7 +145,14 @@ public class Trace
         }
         
         String ret = b.toString();
-        System.out.println(ret);
+        if (m_isLog)
+        {
+            logger.debug(ret);
+        }
+        else
+        {
+            System.out.println(ret);
+        }
         
         return ret;
     }

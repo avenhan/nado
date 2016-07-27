@@ -15,6 +15,7 @@ import av.nado.util.CompareKey;
 import av.nado.util.CompareType;
 import av.nado.util.JsonUtil;
 import av.util.exception.AException;
+import av.util.trace.Trace;
 
 /**
  * 
@@ -30,6 +31,7 @@ public class TestClient
     
     public static void main(String[] args) throws Exception
     {
+        Trace.setLog(true);
         TestServer.main1(args);
         
         NadoRemote.instance().loadConfig("conf/nado.xml");
@@ -43,6 +45,7 @@ public class TestClient
         m_schedule.scheduleWithFixedDelay(new Runnable()
         {
             
+            @Override
             public void run()
             {
                 try
