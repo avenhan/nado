@@ -253,6 +253,7 @@ public class NettyChannelInfo
     
     private String readJson(String in) throws AException
     {
+        logger.debug("####### in: {}, current time: {}", in, System.currentTimeMillis());
         String buffer = in;
         while (true)
         {
