@@ -4,8 +4,6 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -363,11 +361,11 @@ public class NettyChannelInfo
     
     private void createSyncObject(NettySendInfo info)
     {
-        // Object objFire = new Object();
+        Object objFire = new Object();
         
-        CountDownLatch countDownLatch = new CountDownLatch(1);
+        // CountDownLatch objFire = new CountDownLatch(1);
         
-        info.setObjFire(countDownLatch);
+        info.setObjFire(objFire);
     }
     
     private void syncObject(NettySendInfo info)
@@ -378,28 +376,28 @@ public class NettyChannelInfo
             return;
         }
         
-        // try
-        // {
-        // synchronized (objFire)
-        // {
-        // objFire.wait(KEY_TIME_SEND_WATE);
-        // }
-        // }
-        // catch (InterruptedException e)
-        // {
-        // logger.catching(e);
-        // }
-        
-        CountDownLatch countDownLatch = (CountDownLatch) objFire;
         try
         {
-            countDownLatch.await(KEY_TIME_SEND_WATE, TimeUnit.MILLISECONDS);
+            synchronized (objFire)
+            {
+                objFire.wait(KEY_TIME_SEND_WATE);
+            }
         }
-        catch (InterruptedException e1)
+        catch (InterruptedException e)
         {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
+            logger.catching(e);
         }
+        
+        // CountDownLatch countDownLatch = (CountDownLatch) objFire;
+        // try
+        // {
+        // countDownLatch.await(KEY_TIME_SEND_WATE, TimeUnit.MILLISECONDS);
+        // }
+        // catch (InterruptedException e1)
+        // {
+        // // TODO Auto-generated catch block
+        // e1.printStackTrace();
+        // }
     }
     
     private void notifyObject(NettySendInfo info)
@@ -410,12 +408,12 @@ public class NettyChannelInfo
             return;
         }
         
-        // synchronized (objFire)
-        // {
-        // objFire.notify();
-        // }
+        synchronized (objFire)
+        {
+            objFire.notify();
+        }
         
-        CountDownLatch countDownLatch = (CountDownLatch) objFire;
-        countDownLatch.countDown();
+        // CountDownLatch countDownLatch = (CountDownLatch) objFire;
+        // countDownLatch.countDown();
     }
 }

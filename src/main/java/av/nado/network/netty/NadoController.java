@@ -13,14 +13,13 @@ import av.util.trace.FunctionTime;
 public class NadoController implements NettyController<NadoWrap>
 {
     
-    @Override
     public Object receive(NadoWrap rqst) throws Exception
     {
         FunctionTime functionTime = new FunctionTime();
         
         try
         {
-
+            
             String type = rqst.getType();
             String method = rqst.getMethod();
             functionTime.addCurrentTime("{}.{}", type, method);

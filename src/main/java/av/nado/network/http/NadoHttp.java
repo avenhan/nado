@@ -20,21 +20,18 @@ public class NadoHttp implements BaseNetwork
 {
     private Map<String, String> mapHeader = new HashMap<String, String>();
     
-    @Override
     public void startServer(int port)
     {
         // TODO Auto-generated method stub
         
     }
     
-    @Override
     public void startClient(RemoteIp ip)
     {
         // TODO Auto-generated method stub
         
     }
     
-    @Override
     public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
     {
         if (Check.IfOneEmpty(ip, obj))
@@ -77,7 +74,6 @@ public class NadoHttp implements BaseNetwork
         return ret;
     }
     
-    @Override
     public boolean isValidClient(RemoteIp ip) throws AException
     {
         // TODO Auto-generated method stub
