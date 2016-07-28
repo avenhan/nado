@@ -109,6 +109,7 @@ public class NettyManager
         
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
+            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -139,6 +140,7 @@ public class NettyManager
         ClientBootstrap bootstrap = new ClientBootstrap(factory);
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
+            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -355,26 +357,13 @@ public class NettyManager
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void onReceiveMessage(NettyChannelInfo info, NettyWrap wrap, NettySendInfo sendInfo)
     {
-        // if (info.isServer())
-        // {
-        // try
-        // {
-        // wrap.setMsg("I am server and received: " + wrap.getSeq());
-        // post(info, wrap);
-        // }
-        // catch (AException e)
-        // {
-        // // TODO Auto-generated catch block
-        // e.printStackTrace();
-        // }
-        //
-        // return;
-        // }
-        
+        FunctionTime functionTime = new FunctionTime();
         try
         {
             Object objParam = NadoParam.fromExplain(wrap.getMsg());
+            functionTime.addCurrentTime("seq_{} param", wrap.getSeq());
             NettyController<?> controller = m_mapController.get(objParam.getClass());
+            functionTime.addCurrentTime("seq_{} controller", wrap.getSeq());
             if (controller == null)
             {
                 boolean isPost = true;
@@ -394,6 +383,7 @@ public class NettyManager
             action.setController(controller);
             action.setObjParam(objParam);
             
+            functionTime.addCurrentTime("seq_{} action", wrap.getSeq());
             Trace.print("seq: {} receive and will do action at time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
             m_threadPool.execute(action);
         }
@@ -402,6 +392,10 @@ public class NettyManager
             // TODO Auto-generated catch block
             e.printStackTrace();
             sendErrorToClient(info, wrap, e);
+        }
+        finally
+        {
+            functionTime.print();
         }
         
         if (sendInfo != null)
@@ -453,6 +447,7 @@ public class NettyManager
         {
             private long times = 0;
             
+            @Override
             public void run()
             {
                 try

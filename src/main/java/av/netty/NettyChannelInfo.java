@@ -4,12 +4,13 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jboss.netty.channel.Channel;
 
-import av.action.ActionPool;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Aggregate;
 import av.nado.util.Check;
@@ -38,8 +39,6 @@ public class NettyChannelInfo
     
     private String                   readBuf                = "";
     private long                     lastCanbeJsonTime      = 0;
-    
-    private ReceiveAction            action                 = new ReceiveAction();
     
     public boolean isServer()
     {
@@ -91,7 +90,6 @@ public class NettyChannelInfo
         }
         
         long startListenTime = System.currentTimeMillis();
-        
         while (true)
         {
             if (info.getRecv() != null)
@@ -101,7 +99,6 @@ public class NettyChannelInfo
             }
             
             syncObject(info);
-            
             if (info.getRecv() == null)
             {
                 if (System.currentTimeMillis() - startListenTime + KEY_TIME_SEND_WATE >= KEY_TIME_TO_RESENT)
@@ -135,22 +132,13 @@ public class NettyChannelInfo
         }
         
         this.recvs.addLast(msg);
-        synchronized (action)
+        try
         {
-            if (!action.isFinished())
-            {
-                return;
-            }
-            
-            try
-            {
-                ActionPool.instance().addAction(action, this);
-            }
-            catch (AException e)
-            {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+            analysisJson();
+        }
+        catch (AException e)
+        {
+            logger.catching(e);
         }
     }
     
@@ -251,7 +239,8 @@ public class NettyChannelInfo
     
     private String readJson(String in) throws AException
     {
-        logger.debug("####### in: {}, current time: {}", in, System.currentTimeMillis());
+        // logger.debug("####### ip: {} in: {}, current time: {}", ip, in,
+        // System.currentTimeMillis());
         String buffer = in;
         while (true)
         {
@@ -267,8 +256,8 @@ public class NettyChannelInfo
                 // can explain to json
                 lastCanbeJsonTime = System.currentTimeMillis();
                 buffer = buffer.substring(aggregate.getFirst() + json.length());
-                // Trace.print("ip: {} get one json: [{}] left: [{}]", ip, json,
-                // buffer);
+                // Trace.print("ip: {} get one json: [{}] left: [{}] current
+                // time: {}", ip, json, buffer, System.currentTimeMillis());
                 onReceiveMessage(json);
                 continue;
             }
@@ -361,9 +350,8 @@ public class NettyChannelInfo
     
     private void createSyncObject(NettySendInfo info)
     {
-        Object objFire = new Object();
-        
-        // CountDownLatch objFire = new CountDownLatch(1);
+        // Object objFire = new Object();
+        CountDownLatch objFire = new CountDownLatch(1);
         
         info.setObjFire(objFire);
     }
@@ -376,28 +364,27 @@ public class NettyChannelInfo
             return;
         }
         
+        // try
+        // {
+        // synchronized (objFire)
+        // {
+        // objFire.wait(KEY_TIME_SEND_WATE);
+        // }
+        // }
+        // catch (InterruptedException e)
+        // {
+        // logger.catching(e);
+        // }
+        
+        CountDownLatch countDownLatch = (CountDownLatch) objFire;
         try
         {
-            synchronized (objFire)
-            {
-                objFire.wait(KEY_TIME_SEND_WATE);
-            }
+            countDownLatch.await(KEY_TIME_SEND_WATE, TimeUnit.MILLISECONDS);
         }
         catch (InterruptedException e)
         {
             logger.catching(e);
         }
-        
-        // CountDownLatch countDownLatch = (CountDownLatch) objFire;
-        // try
-        // {
-        // countDownLatch.await(KEY_TIME_SEND_WATE, TimeUnit.MILLISECONDS);
-        // }
-        // catch (InterruptedException e1)
-        // {
-        // // TODO Auto-generated catch block
-        // e1.printStackTrace();
-        // }
     }
     
     private void notifyObject(NettySendInfo info)
@@ -408,12 +395,12 @@ public class NettyChannelInfo
             return;
         }
         
-        synchronized (objFire)
-        {
-            objFire.notify();
-        }
+        // synchronized (objFire)
+        // {
+        // objFire.notify();
+        // }
         
-        // CountDownLatch countDownLatch = (CountDownLatch) objFire;
-        // countDownLatch.countDown();
+        CountDownLatch countDownLatch = (CountDownLatch) objFire;
+        countDownLatch.countDown();
     }
 }
