@@ -364,6 +364,7 @@ public class NettyManager
             functionTime.addCurrentTime("seq_{} param", wrap.getSeq());
             NettyController<?> controller = m_mapController.get(objParam.getClass());
             functionTime.addCurrentTime("seq_{} controller", wrap.getSeq());
+            
             if (controller == null)
             {
                 boolean isPost = true;
@@ -400,8 +401,9 @@ public class NettyManager
         
         if (sendInfo != null)
         {
-            Trace.print("......post seq: {} receive seq: {} time waste: {}ms", sendInfo.getWrap().getSeq(), wrap.getSeq(),
-                    System.currentTimeMillis() - sendInfo.getCreateTime());
+            // Trace.print("......post seq: {} receive seq: {} time waste:
+            // {}ms", sendInfo.getWrap().getSeq(), wrap.getSeq(),
+            // System.currentTimeMillis() - sendInfo.getCreateTime());
         }
     }
     

@@ -4,9 +4,9 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +37,8 @@ public class NettyChannelInfo
     private Deque<String>            recvs                  = new ConcurrentLinkedDeque<String>();
     private Map<Long, NettySendInfo> mapPost                = new ConcurrentHashMap<Long, NettySendInfo>();
     
-    private Map<Long, Boolean>       mapRecvSeq             = new ConcurrentSkipListMap<Long, Boolean>();
+    private Map<Long, Boolean>       mapRecvSeq             = new ConcurrentHashMap<Long, Boolean>();
+    private AtomicLong               lastBeginSequence      = new AtomicLong(0);
     
     private String                   readBuf                = "";
     private long                     lastCanbeJsonTime      = 0;
@@ -210,34 +211,22 @@ public class NettyChannelInfo
         FunctionTime functionTime = new FunctionTime();
         try
         {
-            int count = 0;
-            long firstSeq = 0;
-            for (Map.Entry<Long, Boolean> entry : mapRecvSeq.entrySet())
-            {
-                firstSeq = entry.getKey();
-                count++;
-                if (count > 1)
-                {
-                    break;
-                }
-            }
-            
-            functionTime.addCurrentTime("get first");
-            
-            if (count <= 1)
+            if (mapRecvSeq.isEmpty())
             {
                 return;
             }
             
             while (true)
             {
-                if (!mapRecvSeq.containsKey(firstSeq++))
+                long lastSequence = lastBeginSequence.get();
+                if (!mapRecvSeq.containsKey(lastSequence++))
                 {
                     break;
                 }
                 
-                mapRecvSeq.remove(firstSeq - 1);
-                Trace.print("remove safe sequence: {} current time: {}", firstSeq - 1, System.currentTimeMillis());
+                mapRecvSeq.remove(lastSequence - 1);
+                Trace.print("remove safe sequence: {} current time: {}", lastSequence - 1, System.currentTimeMillis());
+                lastBeginSequence.getAndIncrement();
             }
         }
         finally
@@ -330,34 +319,46 @@ public class NettyChannelInfo
             return;
         }
         
-        NettyWrap wrap = JsonUtil.toObject(NettyWrap.class, json);
-        if (wrap == null)
+        FunctionTime time = new FunctionTime();
+        try
         {
-            return;
-        }
-        
-        Trace.print("seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
-        
-        if (isServer)
-        {
-            if (!isValidServerSequence(wrap))
+            NettyWrap wrap = JsonUtil.toObject(NettyWrap.class, json);
+            if (wrap == null)
             {
                 return;
             }
-            netty.onReceiveMessage(this, wrap, null);
-            return;
+            time.addCurrentTime("seq[{}] from json", wrap.getSeq());
+            Trace.print("seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+            
+            if (isServer)
+            {
+                time.addCurrentTime("is valid seq0");
+                if (!isValidServerSequence(wrap))
+                {
+                    return;
+                }
+                
+                time.addCurrentTime("is valid seq1");
+                netty.onReceiveMessage(this, wrap, null);
+                return;
+            }
+            
+            NettySendInfo info = onReceiveAck(wrap);
+            time.addCurrentTime("check ack");
+            if (info != null && !info.isPost())
+            {
+                Trace.print("2 .... seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+                // is send routine, do not on receive message
+                return;
+            }
+            
+            // post routine
+            netty.onReceiveMessage(this, wrap, info);
         }
-        
-        NettySendInfo info = onReceiveAck(wrap);
-        if (info != null && !info.isPost())
+        finally
         {
-            Trace.print("2 .... seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
-            // is send routine, do not on receive message
-            return;
+            time.print();
         }
-        
-        // post routine
-        netty.onReceiveMessage(this, wrap, info);
     }
     
     private NettySendInfo onReceiveAck(NettyWrap wrap)
@@ -434,16 +435,8 @@ public class NettyChannelInfo
         FunctionTime functionTime = new FunctionTime();
         try
         {
-            Long firstSeq = null;
-            for (Map.Entry<Long, Boolean> entry : mapRecvSeq.entrySet())
-            {
-                firstSeq = entry.getKey();
-                break;
-            }
-            functionTime.addCurrentTime("get first");
-            
             long recvSeq = wrap.getSeq();
-            if (firstSeq != null && recvSeq < firstSeq)
+            if (recvSeq < lastBeginSequence.get())
             {
                 // small than first sequence
                 return false;

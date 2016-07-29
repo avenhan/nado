@@ -1,7 +1,7 @@
 package av.nado.test;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 public class TestWait
@@ -9,7 +9,7 @@ public class TestWait
     static long printTime = 0;
     public static void main(String[] arg) throws Exception
     {
-        Map<Long, Boolean> map = new ConcurrentSkipListMap<Long, Boolean>();
+        Map<Long, Boolean> map = new ConcurrentHashMap<Long, Boolean>();
         
         map.put(30L, true);
         map.put(32L, true);
