@@ -1,5 +1,7 @@
 package av.nado.test;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.Semaphore;
 
 public class TestWait
@@ -7,12 +9,31 @@ public class TestWait
     static long printTime = 0;
     public static void main(String[] arg) throws Exception
     {
+        Map<Long, Boolean> map = new ConcurrentSkipListMap<Long, Boolean>();
+        
+        map.put(30L, true);
+        map.put(32L, true);
+        map.put(20L, true);
+        map.put(19L, true);
+        map.put(18L, true);
+        map.put(17L, true);
+        map.put(16L, true);
+        map.put(10L, true);
+        map.put(6L, true);
+        map.put(3L, true);
+        
+        for (Map.Entry<Long, Boolean> entry : map.entrySet())
+        {
+            System.out.println("key: " + entry.getKey() + " value: " + entry.getValue());
+        }
+        
         final Object object = new Object();
         
         final Semaphore semp = new Semaphore(5);
 
 
         Runnable runA = new Runnable() {
+            @Override
             public void run() {
                 while (true)
                 {
@@ -36,6 +57,7 @@ public class TestWait
          };
 
          Runnable runB = new Runnable() {
+            @Override
             public void run() {
 
                 while (true)

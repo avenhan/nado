@@ -4,6 +4,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,8 @@ public class NettyChannelInfo
     private Channel                  channel;
     private Deque<String>            recvs                  = new ConcurrentLinkedDeque<String>();
     private Map<Long, NettySendInfo> mapPost                = new ConcurrentHashMap<Long, NettySendInfo>();
-    private Map<Long, NettySendInfo> mapSent                = new ConcurrentHashMap<Long, NettySendInfo>();
+    
+    private Map<Long, Boolean>       mapRecvSeq             = new ConcurrentSkipListMap<Long, Boolean>();
     
     private String                   readBuf                = "";
     private long                     lastCanbeJsonTime      = 0;
@@ -94,23 +96,20 @@ public class NettyChannelInfo
         {
             if (info.getRecv() != null)
             {
-                mapSent.remove(seq);
                 break;
             }
             
             syncObject(info);
-            if (info.getRecv() == null)
+            
+            if (info.getRecv() != null)
             {
-                if (System.currentTimeMillis() - startListenTime + KEY_TIME_SEND_WATE >= KEY_TIME_TO_RESENT)
-                {
-                    postBaseMessage(info, true);
-                }
-                
-                continue;
+                break;
             }
             
-            mapSent.remove(seq);
-            break;
+            if (System.currentTimeMillis() - startListenTime + KEY_TIME_SEND_WATE >= KEY_TIME_TO_RESENT)
+            {
+                postBaseMessage(info, true);
+            }
         }
         
         return info.getRecv();
@@ -201,7 +200,53 @@ public class NettyChannelInfo
         }
     }
     
-    public long postBaseMessage(NettySendInfo info, boolean redo)
+    protected void removeSafeSequence()
+    {
+        if (!isServer)
+        {
+            return;
+        }
+        
+        FunctionTime functionTime = new FunctionTime();
+        try
+        {
+            int count = 0;
+            long firstSeq = 0;
+            for (Map.Entry<Long, Boolean> entry : mapRecvSeq.entrySet())
+            {
+                firstSeq = entry.getKey();
+                count++;
+                if (count > 1)
+                {
+                    break;
+                }
+            }
+            
+            functionTime.addCurrentTime("get first");
+            
+            if (count <= 1)
+            {
+                return;
+            }
+            
+            while (true)
+            {
+                if (!mapRecvSeq.containsKey(firstSeq++))
+                {
+                    break;
+                }
+                
+                mapRecvSeq.remove(firstSeq - 1);
+                Trace.print("remove safe sequence: {} current time: {}", firstSeq - 1, System.currentTimeMillis());
+            }
+        }
+        finally
+        {
+            functionTime.print();
+        }
+    }
+    
+    private long postBaseMessage(NettySendInfo info, boolean redo)
     {
         if (channel == null)
         {
@@ -228,11 +273,6 @@ public class NettyChannelInfo
         }
         
         mapPost.put(seq, info);
-        if (!info.isPost())
-        {
-            mapSent.put(seq, info);
-        }
-        
         channel.write(info.getJson());
         return seq;
     }
@@ -300,6 +340,10 @@ public class NettyChannelInfo
         
         if (isServer)
         {
+            if (!isValidServerSequence(wrap))
+            {
+                return;
+            }
             netty.onReceiveMessage(this, wrap, null);
             return;
         }
@@ -350,9 +394,7 @@ public class NettyChannelInfo
     
     private void createSyncObject(NettySendInfo info)
     {
-        // Object objFire = new Object();
         CountDownLatch objFire = new CountDownLatch(1);
-        
         info.setObjFire(objFire);
     }
     
@@ -363,18 +405,6 @@ public class NettyChannelInfo
         {
             return;
         }
-        
-        // try
-        // {
-        // synchronized (objFire)
-        // {
-        // objFire.wait(KEY_TIME_SEND_WATE);
-        // }
-        // }
-        // catch (InterruptedException e)
-        // {
-        // logger.catching(e);
-        // }
         
         CountDownLatch countDownLatch = (CountDownLatch) objFire;
         try
@@ -395,12 +425,42 @@ public class NettyChannelInfo
             return;
         }
         
-        // synchronized (objFire)
-        // {
-        // objFire.notify();
-        // }
-        
         CountDownLatch countDownLatch = (CountDownLatch) objFire;
         countDownLatch.countDown();
+    }
+    
+    private boolean isValidServerSequence(NettyWrap wrap)
+    {
+        FunctionTime functionTime = new FunctionTime();
+        try
+        {
+            Long firstSeq = null;
+            for (Map.Entry<Long, Boolean> entry : mapRecvSeq.entrySet())
+            {
+                firstSeq = entry.getKey();
+                break;
+            }
+            functionTime.addCurrentTime("get first");
+            
+            long recvSeq = wrap.getSeq();
+            if (firstSeq != null && recvSeq < firstSeq)
+            {
+                // small than first sequence
+                return false;
+            }
+            
+            if (mapRecvSeq.containsKey(recvSeq))
+            {
+                // sequence is already worked
+                return false;
+            }
+            
+            mapRecvSeq.put(recvSeq, true);
+            return true;
+        }
+        finally
+        {
+            functionTime.print();
+        }
     }
 }

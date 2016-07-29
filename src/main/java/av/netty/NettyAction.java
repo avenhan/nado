@@ -63,6 +63,7 @@ public class NettyAction<T> implements Runnable
         this.objParam = objParam;
     }
     
+    @Override
     public void run()
     {
         Trace.print("seq: {} action begin at: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
@@ -94,6 +95,7 @@ public class NettyAction<T> implements Runnable
         }
         
         Trace.print("seq: {} action finished at: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+        
+        info.removeSafeSequence();
     }
-    
 }
