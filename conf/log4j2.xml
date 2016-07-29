@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error">
+	<Appenders>
+  		<Console name="Console" target="SYSTEM_OUT">
+   			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %class{36} %L %M - %msg%n"/>
+   		</Console>
+
+   		<RollingFile name="FileLog" fileName="log/n.log" append="false"
+   			filePattern="log/$${date:yyyy-MM}/n-%d{yyyy-MM-dd}-%i.lot4.gz">
+      			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %class{36} %L %M - %msg%n"/>
+      			<Policies>
+      				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy /><!-- Rotated everyday -->
+				<SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+			</Policies>
+    		</RollingFile>
+
+		<RollingFile name="FileLog2" fileName="log/n.log" append="false"
+   			filePattern="log/$${date:yyyy-MM}/n-%d{yyyy-MM-dd}-%i.lot4.gz">
+      			<PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %msg%n"/>
+      			<Policies>
+      				<OnStartupTriggeringPolicy />
+				<TimeBasedTriggeringPolicy /><!-- Rotated everyday -->
+				<SizeBasedTriggeringPolicy size="100 MB"/> <!-- Or every 100 MB -->
+			</Policies>
+    		</RollingFile>
+	</Appenders>
+	
+  	<Loggers>
+	    	<Root level="debug">
+	      		<AppenderRef ref="FileLog"/>
+	    	</Root>
+
+		<!-- library -->
+	    	<Logger name="av.util.trace.Trace" level="debug" additivity="false">
+	    		<AppenderRef ref="FileLog2"/>
+	    	</Logger>
+
+		<Logger name="av.util.trace.FunctionTime" level="debug" additivity="false">
+	    		<AppenderRef ref="FileLog2"/>
+	    	</Logger>
+
+	</Loggers>
+</Configuration>

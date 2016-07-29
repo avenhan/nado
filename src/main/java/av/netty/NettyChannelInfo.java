@@ -369,12 +369,11 @@ public class NettyChannelInfo
             functionTime.addCurrentTime("seq[{}] time[{}]ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
             
             NettySendInfo info = mapPost.remove(seq);
+            functionTime.addCurrentTime("remove seq");
             if (info == null)
             {
                 return null;
             }
-            // Trace.print("client rcv ack seq: {}, left size: {}", seq,
-            // mapPost.size());
             
             if (info.isPost())
             {
@@ -382,8 +381,9 @@ public class NettyChannelInfo
             }
             
             info.setRecv(wrap);
-            notifyObject(info);
+            functionTime.addCurrentTime("before notify");
             
+            notifyObject(info);
             return info;
         }
         finally

@@ -120,8 +120,8 @@ public class FunctionTime
         long timeWaste = endTime - startTime;
         printTime = endTime;
         
-        StringBuilder ret = new StringBuilder(trace.getClassName()).append(".").append(trace.getMethodName()).append("().")
-                .append(trace.getLineNumber());
+        StringBuilder ret = new StringBuilder(trace.getClassName()).append(".");
+        ret.append(trace.getMethodName()).append("().").append(trace.getLineNumber()).append("- ");
         ret.append(" time waste: ").append(timeWaste).append("ms ");
         if (!listOUt.isEmpty())
         {

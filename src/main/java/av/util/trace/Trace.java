@@ -88,15 +88,23 @@ public class Trace
     
     public static String print(String text)
     {
-        return print(false, text);
+        return print(true, text);
     }
     
     public static String print(String format, Object... objs)
     {
-        return print(false, format, objs);
+        return print(true, format, objs);
     }
     
-    public static String print(boolean isTrace, String format, Object... objs)
+    /**
+     * 
+     * @param isTrace
+     *            need to record
+     * @param format
+     * @param objs
+     * @return
+     */
+    protected static String print(boolean isTrace, String format, Object... objs)
     {
         if (!m_isGetTrace)
         {
@@ -108,12 +116,14 @@ public class Trace
             return "";
         }
         
-        StackTraceElement trace = ((new Exception()).getStackTrace())[1];
+        StackTraceElement trace = ((new Exception()).getStackTrace())[2];
         String[] arr = format.split("\\{\\}");
         StringBuilder b = null;
         if (isTrace)
         {
-            b = new StringBuilder(trace.getClassName()).append(".").append(trace.getMethodName()).append("().").append(trace.getLineNumber());
+            b = new StringBuilder(trace.getClassName()).append(".");
+            b.append(trace.getMethodName()).append("().").append(trace.getLineNumber());
+            b.append(" - ");
         }
         else
         {
@@ -145,6 +155,11 @@ public class Trace
         }
         
         String ret = b.toString();
+        if (!isTrace)
+        {
+            return ret;
+        }
+        
         if (m_isLog)
         {
             logger.debug(ret);
