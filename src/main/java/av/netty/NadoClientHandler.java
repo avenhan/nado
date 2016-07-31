@@ -47,7 +47,8 @@ public class NadoClientHandler extends SimpleChannelUpstreamHandler
             return;
         }
         
-        Trace.print("client receive: {}, current time: {}", e.getMessage(), System.currentTimeMillis());
+        // Trace.print("client receive: {}, current time: {}", e.getMessage(),
+        // System.currentTimeMillis());
         
         info.recieve((String) e.getMessage());
     }

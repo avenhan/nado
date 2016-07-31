@@ -109,7 +109,6 @@ public class NettyManager
         
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
-            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -140,7 +139,6 @@ public class NettyManager
         ClientBootstrap bootstrap = new ClientBootstrap(factory);
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
         {
-            @Override
             public ChannelPipeline getPipeline()
             {
                 ChannelPipeline pipeline = Channels.pipeline();
@@ -449,7 +447,6 @@ public class NettyManager
         {
             private long times = 0;
             
-            @Override
             public void run()
             {
                 try

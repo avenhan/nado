@@ -7,6 +7,7 @@ import java.util.concurrent.Semaphore;
 public class TestWait
 {
     static long printTime = 0;
+    
     public static void main(String[] arg) throws Exception
     {
         Map<Long, Boolean> map = new ConcurrentHashMap<Long, Boolean>();
@@ -30,11 +31,11 @@ public class TestWait
         final Object object = new Object();
         
         final Semaphore semp = new Semaphore(5);
-
-
-        Runnable runA = new Runnable() {
-            @Override
-            public void run() {
+        
+        Runnable runA = new Runnable()
+        {
+            public void run()
+            {
                 while (true)
                 {
                     try
@@ -54,12 +55,13 @@ public class TestWait
                     printTime = System.currentTimeMillis();
                 }
             }
-         };
-
-         Runnable runB = new Runnable() {
-            @Override
-            public void run() {
-
+        };
+        
+        Runnable runB = new Runnable()
+        {
+            public void run()
+            {
+                
                 while (true)
                 {
                     synchronized (object)

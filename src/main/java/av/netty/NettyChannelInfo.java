@@ -131,14 +131,23 @@ public class NettyChannelInfo
             return;
         }
         
-        this.recvs.addLast(msg);
+        FunctionTime functionTime = new FunctionTime();
         try
         {
-            analysisJson();
+            this.recvs.addLast(msg);
+            functionTime.addCurrentTime("store");
+            try
+            {
+                analysisJson();
+            }
+            catch (AException e)
+            {
+                logger.catching(e);
+            }
         }
-        catch (AException e)
+        finally
         {
-            logger.catching(e);
+            functionTime.print();
         }
     }
     
@@ -149,25 +158,37 @@ public class NettyChannelInfo
             return;
         }
         
-        while (true)
+        FunctionTime functionTime = new FunctionTime();
+        
+        try
         {
-            if (Check.IfOneEmpty(readBuf))
+            while (true)
             {
-                readBuf = this.recvs.pop();
+                if (Check.IfOneEmpty(readBuf))
+                {
+                    readBuf = this.recvs.pop();
+                }
+                
+                functionTime.addCurrentTime("pop");
+                if (Check.IfOneEmpty(readBuf))
+                {
+                    break;
+                }
+                
+                readBuf = readJson(readBuf);
+                functionTime.addCurrentTime("read");
+                if (this.recvs.isEmpty())
+                {
+                    break;
+                }
+                
+                readBuf = new StringBuilder(readBuf).append(this.recvs.pop()).toString();
+                functionTime.addCurrentTime("add");
             }
-            
-            if (Check.IfOneEmpty(readBuf))
-            {
-                break;
-            }
-            
-            readBuf = readJson(readBuf);
-            if (this.recvs.isEmpty())
-            {
-                break;
-            }
-            
-            readBuf = new StringBuilder(readBuf).append(this.recvs.pop()).toString();
+        }
+        finally
+        {
+            functionTime.print();
         }
     }
     
@@ -270,46 +291,57 @@ public class NettyChannelInfo
     {
         // logger.debug("####### ip: {} in: {}, current time: {}", ip, in,
         // System.currentTimeMillis());
-        String buffer = in;
-        while (true)
-        {
-            if (Check.IfOneEmpty(buffer))
-            {
-                break;
-            }
-            
-            Aggregate<Integer, String> aggregate = NettySignature.getValue(buffer);
-            String json = aggregate.getSecond();
-            if (aggregate.getFirst() > -1 && !Check.IfOneEmpty(json))
-            {
-                // can explain to json
-                lastCanbeJsonTime = System.currentTimeMillis();
-                buffer = buffer.substring(aggregate.getFirst() + json.length());
-                // Trace.print("ip: {} get one json: [{}] left: [{}] current
-                // time: {}", ip, json, buffer, System.currentTimeMillis());
-                onReceiveMessage(json);
-                continue;
-            }
-            
-            if (lastCanbeJsonTime == 0)
-            {
-                // first not can explain time
-                lastCanbeJsonTime = System.currentTimeMillis();
-                continue;
-            }
-            
-            if (System.currentTimeMillis() - lastCanbeJsonTime < KEY_TIME_TO_DROP_WORDS)
-            {
-                // can not read json and do not trigger the drop words routine,
-                // so break
-                break;
-            }
-            
-            Trace.print("unkown json check....{}", buffer);
-            return readJson(buffer.substring(1));
-        }
         
-        return buffer;
+        FunctionTime functionTime = new FunctionTime();
+        try
+        {
+            String buffer = in;
+            while (true)
+            {
+                if (Check.IfOneEmpty(buffer))
+                {
+                    break;
+                }
+                
+                Aggregate<Integer, String> aggregate = NettySignature.getValue(buffer);
+                String json = aggregate.getSecond();
+                functionTime.addCurrentTime("get json");
+                if (aggregate.getFirst() > -1 && !Check.IfOneEmpty(json))
+                {
+                    // can explain to json
+                    lastCanbeJsonTime = System.currentTimeMillis();
+                    buffer = buffer.substring(aggregate.getFirst() + json.length());
+                    // Trace.print("ip: {} get one json: [{}] left: [{}] current
+                    // time: {}", ip, json, buffer, System.currentTimeMillis());
+                    onReceiveMessage(json);
+                    continue;
+                }
+                
+                if (lastCanbeJsonTime == 0)
+                {
+                    // first not can explain time
+                    lastCanbeJsonTime = System.currentTimeMillis();
+                    continue;
+                }
+                
+                if (System.currentTimeMillis() - lastCanbeJsonTime < KEY_TIME_TO_DROP_WORDS)
+                {
+                    // can not read json and do not trigger the drop words
+                    // routine,
+                    // so break
+                    break;
+                }
+                
+                Trace.print("unkown json check....{}", buffer);
+                return readJson(buffer.substring(1));
+            }
+            
+            return buffer;
+        }
+        finally
+        {
+            functionTime.print();
+        }
     }
     
     private void onReceiveMessage(String json) throws AException

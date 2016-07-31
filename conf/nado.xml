@@ -7,8 +7,8 @@
 	</register>
 	
 	<bootstrap>
-	    <!-- protocol can be: netty, http -->
-	    <protocol>netty</protocol>
+	    <!-- protocol can be: tcp, http -->
+	    <protocol>tcp</protocol>
 	    <port>9009</port>
 	</bootstrap>
 	

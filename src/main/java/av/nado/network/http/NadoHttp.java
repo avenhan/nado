@@ -13,6 +13,8 @@ import av.nado.remote.RemoteIp;
 import av.nado.util.Aggregate;
 import av.nado.util.Check;
 import av.nado.util.JsonUtil;
+import av.rest.NadoRest;
+import av.rest.NadoRestConfig;
 import av.util.exception.AException;
 import av.util.trace.Trace;
 
@@ -20,13 +22,14 @@ public class NadoHttp implements BaseNetwork
 {
     private Map<String, String> mapHeader = new HashMap<String, String>();
     
-    public void startServer(int port)
+    public void startServer(int port) throws AException
     {
-        // TODO Auto-generated method stub
-        
+        NadoRestConfig config = new NadoRestConfig();
+        config.setPort(port);
+        NadoRest.instance().loadConfig(config);
     }
     
-    public void startClient(RemoteIp ip)
+    public void startClient(RemoteIp ip) throws AException
     {
         // TODO Auto-generated method stub
         

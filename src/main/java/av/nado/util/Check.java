@@ -1,8 +1,11 @@
 package av.nado.util;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +31,7 @@ public class Check
     private static final String IP_REGEX            = "^(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|[1-9])\\." + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\."
             + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)\\." + "(1\\d{2}|2[0-4]\\d|25[0-5]|[1-9]\\d|\\d)$";
     
-    private static final String KEY_VISITOR_UID     = "0000-00000000-0000-0000-0000-000000000000";
+    public static final String  KEY_TIME_FORMAT     = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     
     public static class MapKeyComparator implements Comparator<Object>
     {
@@ -48,21 +51,6 @@ public class Check
         }
         
         return true;
-    }
-    
-    public static boolean isVisitorUid(String uid) throws AException
-    {
-        if (Check.IfOneEmpty(uid))
-        {
-            throw new AException(AException.ERR_SERVER, "invalid parameter");
-        }
-        
-        if (uid.equalsIgnoreCase(KEY_VISITOR_UID))
-        {
-            return true;
-        }
-        
-        return false;
     }
     
     public static boolean isEmail(String email)
@@ -829,5 +817,15 @@ public class Check
         }
         
         return a.cast(b);
+    }
+    
+    public static String toUTCString(long time)
+    {
+        java.util.Date date = new Date(time);
+        
+        DateFormat dateFormat = new SimpleDateFormat(KEY_TIME_FORMAT);
+        String date_time = dateFormat.format(date);
+        
+        return date_time;
     }
 }

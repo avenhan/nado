@@ -11,15 +11,15 @@ import av.util.exception.AException;
 
 public class NetworkManager
 {
-    public static final String              KEY_HTTP  = "http";
-    public static final String              KEY_NETTY = "netty";
+    public static final String              KEY_HTTP          = "http";
+    public static final String              KEY_NETTY         = "tcp";
     
     private static NetworkManager           m_pThis;
     private NetworkType                     m_networkType;
     private BaseNetwork                     m_network;
     private Map<String, RemoteIp>           m_mapConnectedIps = new HashMap<String, RemoteIp>();
     
-    private static Map<String, NetworkType> m_mapType = new HashMap<String, NetworkType>();
+    private static Map<String, NetworkType> m_mapType         = new HashMap<String, NetworkType>();
     
     static
     {
