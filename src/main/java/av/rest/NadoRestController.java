@@ -1,8 +1,11 @@
 package av.rest;
 
+import java.lang.reflect.Method;
 import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,13 +17,25 @@ import av.util.exception.AException;
 
 public class NadoRestController
 {
-    public static final String    KEY_X_FORWORD_FOR = "X-Forwarded-For";
-    public static final String    KEY_REMOTE_PORT   = "REMOTE_PORT";
-    public static final String    KEY_REAL_IP       = "X-Real-IP";
+    public static final String                             KEY_X_FORWORD_FOR   = "X-Forwarded-For";
+    public static final String                             KEY_REMOTE_PORT     = "REMOTE_PORT";
+    public static final String                             KEY_REAL_IP         = "X-Real-IP";
     
-    private static Logger         logger            = LogManager.getLogger(NadoRestController.class);
+    private static Logger                                  logger              = LogManager.getLogger(NadoRestController.class);
+    private RestInfo                                       info;
+    private Map<String, RestInfo>                          mapRestInfo         = new HashMap<String, RestInfo>();
     
-    private Map<String, RestInfo> mapRestInfo       = new HashMap<String, RestInfo>();
+    private final static ConcurrentHashMap<String, Method> cachedMethodByClass = new ConcurrentHashMap<String, Method>();
+    
+    public RestInfo getInfo()
+    {
+        return info;
+    }
+    
+    public void setInfo(RestInfo info)
+    {
+        this.info = info;
+    }
     
     public <T extends ApiRequest> T initializeRequest(Class<T> clazz, Request request) throws AException
     {
@@ -63,62 +78,125 @@ public class NadoRestController
         String auth = request.getHeader("Authorization");
         rqst.setAuthorization(auth);
         
+        setRequestData(rqst, request);
+        
         rqst.checkAuthorization();
         rqst.checkParameter();
         return rqst;
     }
     
-    public Object create(Request request, Response response) throws Exception
+    public <T extends ApiRequest> void setRequestData(T rqst, Request request) throws AException
     {
-        String uri = request.getPath();
-        StringBuilder b = new StringBuilder("post").append(uri);
-        RestInfo info = mapRestInfo.get(b.toString());
-        if (info == null)
+        Set<String> setNames = request.getHeaderNames();
+        setNames.remove("Accept");
+        setNames.remove("Authorization");
+        setNames.remove("Content-Length");
+        setNames.remove("Host");
+        setNames.remove("User-Agent");
+        setNames.remove("UserAuth");
+        if (setNames == null || setNames.isEmpty())
         {
-            throw new AException(AException.ERR_NOT_FOUND, "not found url: {}", b.toString());
+            return;
         }
         
+        ClassNameCache nameCache = new ClassNameCache();
+        nameCache.setClazz(rqst.getClass());
+        
+        for (String name : setNames)
+        {
+            nameCache.setName(name);
+            String value = request.getHeader(name);
+            Object rightValue = null;
+            Method method = getMethodByName(nameCache, name);
+            if (method == null)
+            {
+                continue;
+            }
+            String parameterTypes = method.getParameterTypes()[0].getName();
+            if (parameterTypes.equalsIgnoreCase("java.lang.String"))
+            {
+                rightValue = value;
+            }
+            else if (parameterTypes.equalsIgnoreCase("int") || parameterTypes.equals("java.lang.Integer"))
+            {
+                rightValue = Integer.parseInt(value);
+            }
+            else if (parameterTypes.equalsIgnoreCase("Long") || parameterTypes.equals("java.lang.Long"))
+            {
+                rightValue = Long.parseLong(value);
+            }
+            else if (parameterTypes.equalsIgnoreCase("Boolean") || parameterTypes.equalsIgnoreCase("java.lang.Boolean"))
+            {
+                rightValue = Boolean.parseBoolean(value);
+            }
+            else
+            {
+                rightValue = value;
+            }
+            try
+            {
+                method.invoke(rqst, rightValue);
+            }
+            catch (Exception e)
+            {
+                logger.error("Invalid request. More info: {}", e.toString());
+                throw new AException(400, "request is invalid");
+            }
+        }
+    }
+    
+    public Method getMethodByName(ClassNameCache nameCache, String name)
+    {
+        Method method = cachedMethodByClass.get(nameCache.toString());
+        if (method != null)
+        {
+            return method;
+        }
+        else
+        {
+            Method[] methodArray = nameCache.getClazz().getMethods();
+            for (int i = 0; i < methodArray.length; i++)
+            {
+                StringBuilder builder = new StringBuilder("set").append(name.substring(0, 1).toUpperCase()).append(name.substring(1));
+                if (methodArray[i].getName().equalsIgnoreCase(builder.toString()))
+                {
+                    method = methodArray[i];
+                    cachedMethodByClass.put(nameCache.toString(), method);
+                    return method;
+                }
+            }
+        }
+        return null;
+    }
+    
+    public Object create(Request request, Response response) throws Exception
+    {
         ApiRequest rqst = initializeRequest(info.getRqstType(), request);
         return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
     }
     
     public Object read(Request request, Response response) throws Exception
     {
-        String uri = request.getPath();
-        StringBuilder b = new StringBuilder("get").append(uri);
-        RestInfo info = mapRestInfo.get(b.toString());
-        if (info == null)
-        {
-            throw new AException(AException.ERR_NOT_FOUND, "not found url: {}", b.toString());
-        }
-        
         ApiRequest rqst = initializeRequest(info.getRqstType(), request);
         return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
     }
     
     public Object update(Request request, Response response) throws Exception
     {
-        String uri = request.getPath();
-        StringBuilder b = new StringBuilder("put").append(uri);
-        RestInfo info = mapRestInfo.get(b.toString());
-        if (info == null)
-        {
-            throw new AException(AException.ERR_NOT_FOUND, "not found url: {}", b.toString());
-        }
-        
         ApiRequest rqst = initializeRequest(info.getRqstType(), request);
         return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
     }
     
     public Object delete(Request request, Response response) throws Exception
     {
-        String uri = request.getPath();
-        StringBuilder b = new StringBuilder("delete").append(uri);
-        RestInfo info = mapRestInfo.get(b.toString());
-        if (info == null)
-        {
-            throw new AException(AException.ERR_NOT_FOUND, "not found url: {}", b.toString());
-        }
+        // String uri = request.getPath();
+        // StringBuilder b = new StringBuilder("delete").append(uri);
+        // RestInfo info = mapRestInfo.get(b.toString());
+        // if (info == null)
+        // {
+        // throw new AException(AException.ERR_NOT_FOUND, "not found url: {}",
+        // b.toString());
+        // }
         
         ApiRequest rqst = initializeRequest(info.getRqstType(), request);
         return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
@@ -135,10 +213,5 @@ public class NadoRestController
         }
         
         mapRestInfo.put(b, info);
-    }
-    
-    private void isPattenUri(String uri)
-    {
-        
     }
 }

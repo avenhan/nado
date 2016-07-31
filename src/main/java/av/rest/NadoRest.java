@@ -10,9 +10,8 @@ import av.util.exception.AException;
 
 public class NadoRest
 {
-    private static NadoRest    m_pThis;
-    private RestExpress        m_restExpress;
-    private NadoRestController m_controller = new NadoRestController();
+    private static NadoRest m_pThis;
+    private RestExpress     m_restExpress;
     
     public static NadoRest instance()
     {
@@ -65,8 +64,11 @@ public class NadoRest
             info.setMethodName(method.getName());
             info.setRqstType(rest.request());
             
-            m_restExpress.uri(b.toString(), m_controller).method(info.getHttpMethod());
-            m_controller.addRestInformation(info);
+            NadoRestController controller = new NadoRestController();
+            controller.addRestInformation(info);
+            controller.setInfo(info);
+            
+            m_restExpress.uri(b.toString(), controller).method(info.getHttpMethod());
         }
     }
     
