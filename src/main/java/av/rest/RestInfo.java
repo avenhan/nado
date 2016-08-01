@@ -27,6 +27,9 @@ public class RestInfo
     private String                      methodName;
     private Class<? extends ApiRequest> rqstType;
     
+    private String[]                    arrPaths;
+    private boolean                     hasPattern = false;
+    
     public Class<?> getType()
     {
         return type;
@@ -46,6 +49,15 @@ public class RestInfo
     public void setUri(String uri)
     {
         this.uri = uri;
+        this.arrPaths = uri.split("/");
+        for (String path : arrPaths)
+        {
+            if (path.charAt(0) == '{' && path.charAt(path.length() - 1) == '}')
+            {
+                this.hasPattern = true;
+                break;
+            }
+        }
     }
     
     public String getMethod()
@@ -110,4 +122,23 @@ public class RestInfo
         this.rqstType = rqstType;
     }
     
+    public String[] getArrPaths()
+    {
+        return arrPaths;
+    }
+    
+    public void setArrPaths(String[] arrPaths)
+    {
+        this.arrPaths = arrPaths;
+    }
+    
+    public boolean isHasPattern()
+    {
+        return hasPattern;
+    }
+    
+    public void setHasPattern(boolean hasPattern)
+    {
+        this.hasPattern = hasPattern;
+    }
 }

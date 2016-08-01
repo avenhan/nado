@@ -27,6 +27,8 @@ public class NadoRestController
     
     private final static ConcurrentHashMap<String, Method> cachedMethodByClass = new ConcurrentHashMap<String, Method>();
     
+    private Map<String, RestInfo>                          mapMostLike         = new HashMap<String, RestInfo>();
+    
     public RestInfo getInfo()
     {
         return info;
@@ -35,6 +37,26 @@ public class NadoRestController
     public void setInfo(RestInfo info)
     {
         this.info = info;
+    }
+    
+    public void addMostLike(Map<String, RestInfo> map)
+    {
+        if (Check.IfOneEmpty(map))
+        {
+            return;
+        }
+        
+        for (Map.Entry<String, RestInfo> entry : map.entrySet())
+        {
+            if (entry.getKey().charAt(0) == '/')
+            {
+                mapMostLike.put(entry.getKey(), entry.getValue());
+            }
+            else
+            {
+                mapMostLike.put(new StringBuilder("/").append(entry.getKey()).toString(), entry.getValue());
+            }
+        }
     }
     
     public <T extends ApiRequest> T initializeRequest(Class<T> clazz, Request request) throws AException
@@ -171,20 +193,32 @@ public class NadoRestController
     
     public Object create(Request request, Response response) throws Exception
     {
-        ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-        return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        if (Check.IfOneEmpty(mapMostLike))
+        {
+            ApiRequest rqst = initializeRequest(info.getRqstType(), request);
+            return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        }
+        
+        String url = request.getPath();
+        RestInfo otherInfo = mapMostLike.get(url);
+        if (otherInfo == null)
+        {
+            ApiRequest rqst = initializeRequest(info.getRqstType(), request);
+            return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        }
+        
+        ApiRequest rqst = initializeRequest(otherInfo.getRqstType(), request);
+        return otherInfo.getMethodAccess().invoke(otherInfo.getController(), otherInfo.getMethodName(), rqst, response);
     }
     
     public Object read(Request request, Response response) throws Exception
     {
-        ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-        return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        return create(request, response);
     }
     
     public Object update(Request request, Response response) throws Exception
     {
-        ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-        return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        return create(request, response);
     }
     
     public Object delete(Request request, Response response) throws Exception
@@ -198,8 +232,7 @@ public class NadoRestController
         // b.toString());
         // }
         
-        ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-        return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+        return create(request, response);
     }
     
     protected void addRestInformation(RestInfo info) throws AException

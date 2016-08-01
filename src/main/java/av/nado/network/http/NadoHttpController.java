@@ -17,4 +17,10 @@ public class NadoHttpController
     {
         return "test post";
     }
+    
+    @Rest(uri = "test/id", method = "post", request = TestPostRequest.class)
+    public Object testPostId(TestPostRequest rqst, Response response) throws Exception
+    {
+        return "test post Id";
+    }
 }
