@@ -76,7 +76,18 @@ public class NadoRest
         
         initializeMostLike();
         m_restExpress.bind(config.getPort());
-        m_restExpress.awaitShutdown();
+        // m_restExpress.awaitShutdown();
+        
+        Runtime runtime = Runtime.getRuntime();
+        Thread thread = new Thread(new Runnable()
+        {
+            
+            public void run()
+            {
+                System.out.println("server is shutdown...");
+            }
+        });
+        runtime.addShutdownHook(thread);
     }
     
     private void addController(NadoRestConfig config, Object object) throws AException
@@ -187,7 +198,9 @@ public class NadoRest
     public static void main(String[] arg) throws Exception
     {
         NadoRestConfig config = new NadoRestConfig();
-        config.setPort(9090);
+        config.setPort(9009);
         NadoRest.instance().loadConfig(config, new NadoHttpController());
+        
+        System.out.println("is working...");
     }
 }

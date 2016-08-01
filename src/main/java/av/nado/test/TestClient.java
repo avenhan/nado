@@ -32,7 +32,7 @@ public class TestClient
     public static void main(String[] args) throws Exception
     {
         Trace.setLog(true);
-        // TestServer.main1(args);
+        TestServer.main1(args);
         
         NadoRemote.instance().loadConfig("conf/nado.xml");
         
