@@ -68,7 +68,6 @@ public class NadoManager
             
             m_outPort = setting.getPort();
             NetworkManager.instance().setNetworkType(setting.getBootstrap());
-            NetworkManager.instance().startServer(setting.getPort());
             
             Map<String, NadoInfo<?>> mapInfo = new LinkedHashMap<String, NadoInfo<?>>();
             List<String> lstRemoteClass = setting.getRemote();
@@ -80,6 +79,8 @@ public class NadoManager
             }
             
             addLoadedClasses("", mapInfo);
+            
+            NetworkManager.instance().startServer(setting.getPort());
         }
         catch (Exception e)
         {

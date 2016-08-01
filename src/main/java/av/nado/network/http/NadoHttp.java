@@ -26,13 +26,12 @@ public class NadoHttp implements BaseNetwork
     {
         NadoRestConfig config = new NadoRestConfig();
         config.setPort(port);
-        NadoRest.instance().loadConfig(config);
+        NadoRest.instance().loadConfig(config, new NadoHttpController());
     }
     
     public void startClient(RemoteIp ip) throws AException
     {
         // TODO Auto-generated method stub
-        
     }
     
     public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
@@ -47,7 +46,6 @@ public class NadoHttp implements BaseNetwork
         // header information
         
         Trace.debug("nado url: {} post: {}", url, json);
-        
         Aggregate<Integer, String> aggregate = HttpHelper.post(url, json, this.mapHeader);
         if (aggregate == null)
         {

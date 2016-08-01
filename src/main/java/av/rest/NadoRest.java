@@ -1,12 +1,16 @@
 package av.rest;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.restexpress.RestExpress;
 
 import av.nado.network.http.NadoHttpController;
+import av.nado.util.Check;
 import av.rest.preprocessor.LogMessageObserver;
 import av.util.exception.AException;
 
@@ -27,8 +31,30 @@ public class NadoRest
         return m_pThis;
     }
     
-    public void loadConfig(NadoRestConfig config) throws AException
+    public void loadConfig(NadoRestConfig config, Object... controllers) throws AException
     {
+        Set<Object> setControllers = new HashSet<Object>();
+        
+        for (Object controller : controllers)
+        {
+            if (controller == null)
+            {
+                throw new AException(AException.ERR_SERVER, "invalid parameters");
+            }
+            
+            setControllers.add(controller);
+        }
+        
+        loadConfig(config, setControllers);
+    }
+    
+    public void loadConfig(NadoRestConfig config, Collection<?> lstObjects) throws AException
+    {
+        if (Check.IfOneEmpty(config, lstObjects))
+        {
+            throw new AException(AException.ERR_SERVER, "invalid parameter");
+        }
+        
         m_restExpress = new RestExpress();
         m_restExpress.setBaseUrl(config.getBaseUrl());
         m_restExpress.setPort(config.getPort());
@@ -38,9 +64,16 @@ public class NadoRest
         
         m_restExpress.addMessageObserver(new LogMessageObserver());
         
-        addController(config, new NadoHttpController());
+        for (Object object : lstObjects)
+        {
+            if (object == null)
+            {
+                throw new AException(AException.ERR_SERVER, "invalid parameters");
+            }
+            
+            addController(config, object);
+        }
         
-
         initializeMostLike();
         m_restExpress.bind(config.getPort());
         m_restExpress.awaitShutdown();
@@ -153,16 +186,8 @@ public class NadoRest
     
     public static void main(String[] arg) throws Exception
     {
-        String url = "1.0/test/{hello}/work/{type}/see";
-        String[] arrPox = url.split("/");
-        System.out.println(arrPox.length);
-        for (String pox : arrPox)
-        {
-            System.out.println(pox);
-        }
-        
         NadoRestConfig config = new NadoRestConfig();
         config.setPort(9090);
-        NadoRest.instance().loadConfig(config);
+        NadoRest.instance().loadConfig(config, new NadoHttpController());
     }
 }

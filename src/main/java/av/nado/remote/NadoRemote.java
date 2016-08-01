@@ -116,7 +116,7 @@ public class NadoRemote
                 throw new AException(AException.ERR_SERVER, "no remote class: {} method: {} can be useful", type, method);
             }
             
-            
+            functionTime.addCurrentTime("network");
             Object objRet = aggregate.getSecond();
             if (objRet != null && objRet instanceof Throwable)
             {

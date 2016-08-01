@@ -8,7 +8,7 @@
 	
 	<bootstrap>
 	    <!-- protocol can be: tcp, http -->
-	    <protocol>tcp</protocol>
+	    <protocol>http</protocol>
 	    <port>9009</port>
 	</bootstrap>
 	
