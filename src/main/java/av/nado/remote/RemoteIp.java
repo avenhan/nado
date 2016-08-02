@@ -14,6 +14,9 @@ public class RemoteIp
     private String             ip;
     private int                port;
     
+    // tcp, http
+    private String             type;
+    
     private long               lastConnectedTime = 0;
     private long               readCount         = 0;
     private String             url;
@@ -163,4 +166,15 @@ public class RemoteIp
     {
         this.attachment = attachment;
     }
+    
+    public String getType()
+    {
+        return type;
+    }
+    
+    public void setType(String type)
+    {
+        this.type = type;
+    }
+    
 }

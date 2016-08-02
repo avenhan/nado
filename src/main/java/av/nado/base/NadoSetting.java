@@ -1,6 +1,7 @@
 package av.nado.base;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,11 +13,13 @@ public class NadoSetting
     public static final String  KEY_PROTOCOL  = "protocol";
     public static final String  KEY_ADDRESS   = "address";
     public static final String  KEY_BOOTSTRAP = "bootstrap";
+    public static final String   KEY_CLIENT    = "client";
     
     private Map<String, String> register;
-    private int                 port;
-    private String              bootstrap;
+    private Map<String, Integer> boostrap      = new HashMap<String, Integer>();
     private List<String>        remote;
+    
+    private String               client;
     
     @SuppressWarnings("unchecked")
     public static NadoSetting load(Map<String, Object> map)
@@ -30,16 +33,47 @@ public class NadoSetting
                 continue;
             }
             
+            if (entry.getKey().equals(NadoSetting.KEY_CLIENT))
+            {
+                setting.setClient((String) entry.getValue());
+                continue;
+            }
+            
             if (entry.getKey().equals(NadoSetting.KEY_BOOTSTRAP))
             {
-                Map<String, String> mapBootstrap = (Map<String, String>) entry.getValue();
-                
-                if (mapBootstrap.containsKey(KEY_PORT))
+                Object object = entry.getValue();
+                if (object instanceof List<?>)
                 {
-                    setting.setPort(Integer.parseInt(mapBootstrap.get(NadoSetting.KEY_PORT)));
+                    List<String> lstBoostrap = (List<String>) object;
+                    for (String boostrap : lstBoostrap)
+                    {
+                        String[] arrBoostrap = boostrap.split(":");
+                        arrBoostrap[0].replaceAll(" ", "");
+                        arrBoostrap[0].replaceAll("\t", "");
+                        arrBoostrap[0].replaceAll("\n", "");
+                        
+                        arrBoostrap[1].replaceAll(" ", "");
+                        arrBoostrap[1].replaceAll("\t", "");
+                        arrBoostrap[1].replaceAll("\n", "");
+                        
+                        setting.boostrap.put(arrBoostrap[0], Integer.parseInt(arrBoostrap[1]));
+                    }
                 }
-                
-                setting.setBootstrap(mapBootstrap.get(NadoSetting.KEY_PROTOCOL));
+                else
+                {
+                    String boostrap = (String) object;
+                    
+                    String[] arrBoostrap = boostrap.split(":");
+                    arrBoostrap[0].replaceAll(" ", "");
+                    arrBoostrap[0].replaceAll("\t", "");
+                    arrBoostrap[0].replaceAll("\n", "");
+                    
+                    arrBoostrap[1].replaceAll(" ", "");
+                    arrBoostrap[1].replaceAll("\t", "");
+                    arrBoostrap[1].replaceAll("\n", "");
+                    
+                    setting.boostrap.put(arrBoostrap[0], Integer.parseInt(arrBoostrap[1]));
+                }
             }
             
             if (entry.getKey().equals(NadoSetting.KEY_REMOTE))
@@ -71,24 +105,15 @@ public class NadoSetting
         this.register = register;
     }
     
-    public int getPort()
+    
+    public Map<String, Integer> getBoostrap()
     {
-        return port;
+        return boostrap;
     }
     
-    public void setPort(int port)
+    public void setBoostrap(Map<String, Integer> boostrap)
     {
-        this.port = port;
-    }
-    
-    public String getBootstrap()
-    {
-        return bootstrap;
-    }
-    
-    public void setBootstrap(String bootstrap)
-    {
-        this.bootstrap = bootstrap;
+        this.boostrap = boostrap;
     }
     
     public List<String> getRemote()
@@ -101,4 +126,13 @@ public class NadoSetting
         this.remote = remote;
     }
     
+    public String getClient()
+    {
+        return client;
+    }
+    
+    public void setClient(String client)
+    {
+        this.client = client;
+    }
 }

@@ -94,13 +94,13 @@ public class RegisterManager
         return m_register.findProxy(key);
     }
     
-    public void registerProxy(String key, String addr) throws AException
+    public void registerProxy(String key, String addr, String type) throws AException
     {
-        m_register.registerProxy(key, addr);
+        m_register.registerProxy(key, addr, type);
     }
     
-    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException
     {
-        return m_register.loadRemoteIps();
+        return m_register.loadRemoteIps(clientType);
     }
 }

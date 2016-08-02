@@ -39,7 +39,7 @@ public class ZookRegister implements Register
         return proxy;
     }
     
-    public void registerProxy(String key, String addr) throws AException
+    public void registerProxy(String key, String addr, String type) throws AException
     {
         if (Check.IfOneEmpty(key, addr))
         {
@@ -51,7 +51,7 @@ public class ZookRegister implements Register
         Zookeeper.instance().create(b.toString(), "");
         
         b.append("/").append(addr);
-        Zookeeper.instance().create(b.toString(), "", CreateMode.EPHEMERAL);
+        Zookeeper.instance().create(b.toString(), type, CreateMode.EPHEMERAL);
     }
     
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
@@ -76,7 +76,7 @@ public class ZookRegister implements Register
         Zookeeper.instance().create(KEY_NADO_ROOT, "");
     }
     
-    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException
     {
         Map<String, NadoProxy> mapRet = new HashMap<String, NadoProxy>();
         
@@ -88,9 +88,23 @@ public class ZookRegister implements Register
             
             NadoProxy proxy = new NadoProxy();
             proxy.setName(key);
+            
             for (String ip : lstIps)
             {
-                proxy.addIp(ip);
+                StringBuilder ipBuilder = new StringBuilder(b).append("/").append(ip);
+                String value = Zookeeper.instance().toString(ipBuilder.toString());
+                
+                if (!value.equalsIgnoreCase(clientType))
+                {
+                    continue;
+                }
+                
+                proxy.addIp(ip, value);
+            }
+            
+            if (proxy.getLstRemoteIps().isEmpty())
+            {
+                continue;
             }
             
             mapRet.put(key, proxy);

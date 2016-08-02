@@ -11,9 +11,9 @@ public interface Register
 {
     public NadoProxy findProxy(String key) throws AException;
     
-    public void registerProxy(String key, String addr) throws AException;
+    public void registerProxy(String key, String addr, String type) throws AException;
     
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException;
     
-    public Map<String, NadoProxy> loadRemoteIps() throws AException;
+    public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException;
 }

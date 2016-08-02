@@ -22,6 +22,7 @@ public class NadoRemote
 {
     private static Logger          logger     = LogManager.getLogger(NadoRemote.class);
     private static NadoRemote      m_pThis;
+    private String                 clientType;
     private static NetworkManager  m_network  = NetworkManager.instance();
     
     private Map<String, NadoProxy> m_mapProxy = new ConcurrentHashMap<String, NadoProxy>();
@@ -50,7 +51,16 @@ public class NadoRemote
             RegisterManager.instance().setType(setting.getRegister().get(NadoSetting.KEY_PROTOCOL));
             RegisterManager.instance().setAddress(setting.getRegister().get(NadoSetting.KEY_ADDRESS));
             
-            m_network.setNetworkType(setting.getBootstrap());
+            if (Check.IfOneEmpty(setting.getClient()))
+            {
+                clientType = NetworkManager.KEY_NETTY;
+            }
+            else
+            {
+                clientType = setting.getClient();
+            }
+            
+            m_network.setNetworkType(clientType);
             loadRemoteAddress();
         }
         catch (Exception e)
@@ -163,7 +173,7 @@ public class NadoRemote
     
     private void loadRemoteAddress() throws AException
     {
-        Map<String, NadoProxy> mapProxy = RegisterManager.instance().loadRemoteIps();
+        Map<String, NadoProxy> mapProxy = RegisterManager.instance().loadRemoteIps(clientType);
         for (Map.Entry<String, NadoProxy> entry : mapProxy.entrySet())
         {
             connectClient(entry.getValue());

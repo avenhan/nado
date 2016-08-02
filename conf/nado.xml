@@ -6,11 +6,11 @@
 	    <address>127.0.0.1:2181</address>
 	</register>
 	
-	<bootstrap>
-	    <!-- protocol can be: tcp, http -->
-	    <protocol>http</protocol>
-	    <port>9009</port>
-	</bootstrap>
+    <!-- protocol can be: tcp, http -->
+    <bootstrap>http:9009</bootstrap>
+    <bootstrap>tcp:9010</bootstrap>
+    
+    <client>http</client>
 	
 	<!-- remote ip list -->
 	<remote>av.nado.test.TestRemote</remote>

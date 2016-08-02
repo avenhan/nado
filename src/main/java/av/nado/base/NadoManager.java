@@ -10,6 +10,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import av.nado.annotation.Remote;
 import av.nado.network.NetworkManager;
 import av.nado.register.RegisterManager;
+import av.nado.util.Check;
 import av.nado.util.XmlUtil;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
@@ -36,8 +38,9 @@ public class NadoManager
     
     private static Logger            logger        = LogManager.getLogger(NadoManager.class);
     private static NadoManager       m_pThis;
-    private int                      m_outPort     = 8089;
     private InetAddress              m_addr;
+    private NadoSetting              m_setting;
+    private Map<String, Integer>     m_mapServerInfo = new HashMap<String, Integer>();
     private Map<String, NadoInfo<?>> m_mapInfo     = new ConcurrentHashMap<String, NadoInfo<?>>();
     
     protected NadoManager()
@@ -66,8 +69,26 @@ public class NadoManager
             RegisterManager.instance().setType(setting.getRegister().get(NadoSetting.KEY_PROTOCOL));
             RegisterManager.instance().setAddress(setting.getRegister().get(NadoSetting.KEY_ADDRESS));
             
-            m_outPort = setting.getPort();
-            NetworkManager.instance().setNetworkType(setting.getBootstrap());
+            m_setting = setting;
+            Map<String, Integer> mapBoostrap = m_setting.getBoostrap();
+            for (Map.Entry<String, Integer> entry : mapBoostrap.entrySet())
+            {
+                try
+                {
+                    NetworkManager.instance().setNetworkType(entry.getKey());
+                    NetworkManager.instance().startServer(entry.getKey(), entry.getValue());
+                    m_mapServerInfo.put(entry.getKey(), entry.getValue());
+                }
+                catch (Exception e)
+                {
+                    // TODO: handle exception
+                }
+            }
+            
+            if (Check.IfOneEmpty(m_mapServerInfo))
+            {
+                throw new AException(AException.ERR_FATAL, "not boostrap is usefull");
+            }
             
             Map<String, NadoInfo<?>> mapInfo = new LinkedHashMap<String, NadoInfo<?>>();
             List<String> lstRemoteClass = setting.getRemote();
@@ -79,8 +100,6 @@ public class NadoManager
             }
             
             addLoadedClasses("", mapInfo);
-            
-            NetworkManager.instance().startServer(setting.getPort());
         }
         catch (Exception e)
         {
@@ -207,12 +226,14 @@ public class NadoManager
         FunctionTime functionTime = new FunctionTime();
         try
         {
-            StringBuilder bKey = new StringBuilder(type).append(".").append(method);
-            StringBuilder bValue = new StringBuilder(m_addr.getHostAddress()).append(":").append(m_outPort);
-            String addressInfo = bValue.toString();
+            String key = new StringBuilder(type).append(".").append(method).toString();
             
-            functionTime.addCurrentTime("prepare");
-            RegisterManager.instance().registerProxy(bKey.toString(), addressInfo);
+            for (Map.Entry<String, Integer> entry : m_mapServerInfo.entrySet())
+            {
+                StringBuilder bValue = new StringBuilder(m_addr.getHostAddress()).append(":").append(entry.getValue());
+                RegisterManager.instance().registerProxy(key, bValue.toString(), entry.getKey());
+                functionTime.addCurrentTime("key: {} register ip: {} type: {}", key, bValue.toString(), entry.getKey());
+            }
         }
         finally
         {

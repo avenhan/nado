@@ -15,8 +15,7 @@ public class NetworkManager
     public static final String              KEY_NETTY         = "tcp";
     
     private static NetworkManager           m_pThis;
-    private NetworkType                     m_networkType;
-    private BaseNetwork                     m_network;
+    private Map<String, BaseNetwork>        m_mapNetwork      = new HashMap<String, BaseNetwork>();
     private Map<String, RemoteIp>           m_mapConnectedIps = new HashMap<String, RemoteIp>();
     
     private static Map<String, NetworkType> m_mapType         = new HashMap<String, NetworkType>();
@@ -44,28 +43,37 @@ public class NetworkManager
     
     public void setNetworkType(String type) throws AException
     {
-        this.m_networkType = m_mapType.get(type);
-        if (this.m_networkType == null)
+        NetworkType networkType = m_mapType.get(type);
+        if (networkType == null)
         {
             throw new AException(AException.ERR_FATAL, "invalid bootstrap procotol: {}", type);
         }
         
-        switch (this.m_networkType)
+        BaseNetwork network = null;
+        switch (networkType)
         {
             case NETWORK_TYPE_HTTP:
-                m_network = new NadoHttp();
+                network = new NadoHttp();
                 break;
             case NETWORK_TYPE_NETTY:
-                m_network = new NadoNetty();
+                network = new NadoNetty();
                 break;
             default:
-                throw new AException(AException.ERR_SERVER, "unknown network type: {}", m_networkType);
+                throw new AException(AException.ERR_SERVER, "unknown network type: {}", networkType);
         }
+        
+        m_mapNetwork.put(type, network);
     }
     
-    public void startServer(int port) throws AException
+    public void startServer(String type, int port) throws AException
     {
-        m_network.startServer(port);
+        BaseNetwork network = m_mapNetwork.get(type);
+        if (network == null)
+        {
+            throw new AException(AException.ERR_SERVER, "unknow network type: {}", type);
+        }
+        
+        network.startServer(port);
     }
     
     public RemoteIp startClient(RemoteIp ip) throws AException
@@ -76,10 +84,16 @@ public class NetworkManager
             return ipExisted;
         }
         
-        m_network.startClient(ip);
+        BaseNetwork network = m_mapNetwork.get(ip.getType());
+        if (network == null)
+        {
+            throw new AException(AException.ERR_SERVER, "unknow network type: {}", ip.getType());
+        }
+        
+        network.startClient(ip);
         
         int count = 0;
-        while (!m_network.isValidClient(ip))
+        while (!network.isValidClient(ip))
         {
             try
             {
@@ -105,11 +119,23 @@ public class NetworkManager
     
     public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
     {
-        return m_network.send(ip, obj);
+        BaseNetwork network = m_mapNetwork.get(ip.getType());
+        if (network == null)
+        {
+            throw new AException(AException.ERR_SERVER, "unknow network type: {}", ip.getType());
+        }
+        
+        return network.send(ip, obj);
     }
     
     public boolean isValidClient(RemoteIp ip) throws AException
     {
-        return m_network.isValidClient(ip);
+        BaseNetwork network = m_mapNetwork.get(ip.getType());
+        if (network == null)
+        {
+            throw new AException(AException.ERR_SERVER, "unknow network type: {}", ip.getType());
+        }
+        
+        return network.isValidClient(ip);
     }
 }

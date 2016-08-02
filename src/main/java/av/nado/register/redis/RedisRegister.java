@@ -42,7 +42,7 @@ public class RedisRegister implements Register
         return null;
     }
     
-    public void registerProxy(String key, String addr) throws AException
+    public void registerProxy(String key, String addr, String type) throws AException
     {
         // RedisRegister.instance().addCacheType(bKey.toString());
         // RedisList<String> redisList = new RedisList<>(bKey.toString(),
@@ -81,7 +81,7 @@ public class RedisRegister implements Register
         m_setIps = lstIps;
     }
     
-    public Map<String, NadoProxy> loadRemoteIps() throws AException
+    public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException
     {
         // TODO Auto-generated method stub
         return null;

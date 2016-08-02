@@ -38,4 +38,15 @@ public class NadoProxy
         
         lstRemoteIps.add(remoteIp);
     }
+    
+    public void addIp(String ip, String type)
+    {
+        RemoteIp remoteIp = RemoteIp.getRemoteIp(ip);
+        if (remoteIp == null)
+        {
+            return;
+        }
+        remoteIp.setType(type);
+        lstRemoteIps.add(remoteIp);
+    }
 }
