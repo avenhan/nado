@@ -1,6 +1,7 @@
 package av.redis;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,12 +19,15 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class Redis
 {
-    public static final int                 KEY_MAX_TOTAL     = 20;
-    public static final long                KEY_MAX_WAIT_TIME = 1000L;
+    public static final int                 KEY_MAX_TOTAL          = 20;
+    public static final long                KEY_MAX_WAIT_TIME      = 1000L;
     
-    private static Logger                   logger            = LogManager.getLogger(Redis.class);
+    private static Logger                   logger                 = LogManager.getLogger(Redis.class);
     
-    private static Map<RemoteIp, JedisPool> m_mapRedisPool    = new ConcurrentHashMap<RemoteIp, JedisPool>();
+    private static Map<RemoteIp, JedisPool> m_mapRedisPool         = new ConcurrentHashMap<RemoteIp, JedisPool>();
+    
+    public static final long                KEY_TIME_LOCK_TIME_OUT = 15000;
+    private static Map<String, Long>        m_mapLockKeys          = new HashMap<String, Long>();
     
     public static void initialize(Set<RemoteIp> lstIps) throws AException
     {
@@ -192,6 +196,146 @@ public class Redis
         {
             close(pool, jedis);
             functionTime.print();
+        }
+    }
+    
+    @SuppressWarnings("resource")
+    public boolean lock(JedisPool pool, String type, String key) throws AException
+    {
+        if (Check.IfOneEmpty(pool, type, key))
+        {
+            return false;
+        }
+        
+        FunctionTime time = new FunctionTime();
+        Jedis jedis = null;
+        String jedisKey = key(type, key);
+        
+        try
+        {
+            jedis = pool.getResource();
+            
+            long currentTime = System.currentTimeMillis();
+            long ret = jedis.setnx(jedisKey, Long.toString(currentTime));
+            if (ret == 1)
+            {
+                m_mapLockKeys.put(jedisKey, currentTime);
+                logger.debug("lock key: {} locked time: {}", jedisKey, currentTime);
+                System.out.println("lock key: " + jedisKey + " locked tiem: " + currentTime);
+                
+                return true;
+            }
+            
+            while (true)
+            {
+                String lastTimeValue = jedis.get(jedisKey);
+                if (Check.IfOneEmpty(lastTimeValue))
+                {
+                    throw new AException(AException.ERR_SERVER, "lock key: " + jedisKey + " is not existed....");
+                }
+                
+                long lastTime = Long.parseLong(lastTimeValue);
+                currentTime = System.currentTimeMillis();
+                if (lastTime + KEY_TIME_LOCK_TIME_OUT > currentTime)
+                {
+                    Thread.sleep(100);
+                    continue;
+                }
+                
+                String oldTimeValue = jedis.getSet(jedisKey, Long.toString(currentTime));
+                if (Check.IfOneEmpty(oldTimeValue))
+                {
+                    throw new AException(AException.ERR_SERVER, "lock key: " + jedisKey + " is not existed....");
+                }
+                
+                if (!oldTimeValue.equals(lastTimeValue))
+                {
+                    // someone has got the lock, wait and sleep
+                    continue;
+                }
+                
+                m_mapLockKeys.put(jedisKey, currentTime);
+                logger.debug("lock key: {} locked time: {}", jedisKey, currentTime);
+                System.out.println("lock key: " + jedisKey + " locked tiem: " + currentTime);
+                
+                return true;
+            }
+            
+        }
+        catch (Exception e)
+        {
+            throw new AException(AException.ERR_SERVER, e);
+        }
+        finally
+        {
+            close(pool, jedis);
+            time.print();
+        }
+    }
+    
+    public void unlock(JedisPool pool, String type, String key) throws AException
+    {
+        if (Check.IfOneEmpty(type, key))
+        {
+            return;
+        }
+        
+        FunctionTime time = new FunctionTime();
+        Jedis jedis = null;
+        String jedisKey = key(type, key);
+        
+        try
+        {
+            jedis = pool.getResource();
+            String lastTimeValue = jedis.get(jedisKey);
+            if (Check.IfOneEmpty(lastTimeValue))
+            {
+                throw new AException(AException.ERR_SERVER, "lock key: " + jedisKey + " is not existed....");
+            }
+            
+            Long getLockTime = m_mapLockKeys.get(jedisKey);
+            if (getLockTime == null)
+            {
+                // can not free other's lock
+                return;
+            }
+            
+            long lastTime = Long.parseLong(lastTimeValue);
+            if (lastTime != getLockTime)
+            {
+                // some has got the lock
+                m_mapLockKeys.remove(jedisKey);
+                return;
+            }
+            
+            long currentTime = System.currentTimeMillis();
+            long diffTime = currentTime - lastTime;
+            if (diffTime < 0 || diffTime > KEY_TIME_LOCK_TIME_OUT - 200)
+            {
+                //
+                logger.debug("lock key: {} set time out, last locked time: {}, current time: {}, diff time: {}", jedisKey, lastTime, currentTime,
+                        diffTime);
+                System.out.println("lock key: " + jedisKey + " set time out last locked time: " + lastTime + ", current time: " + currentTime
+                        + ", diff time: " + diffTime);
+                m_mapLockKeys.remove(jedisKey);
+                return;
+            }
+            
+            jedis.set(jedisKey, "0");
+            logger.debug("lock key: {} set time out, last locked time: {}, current time: {}, diff time: {}", jedisKey, lastTime, currentTime,
+                    diffTime);
+            System.out.println("lock key: " + jedisKey + " set time out last locked time: " + lastTime + ", current time: " + currentTime
+                    + ", diff time: " + diffTime);
+            m_mapLockKeys.remove(jedisKey);
+        }
+        catch (Exception e)
+        {
+            throw new AException(AException.ERR_SERVER, e);
+        }
+        finally
+        {
+            close(pool, jedis);
+            time.print();
         }
     }
     

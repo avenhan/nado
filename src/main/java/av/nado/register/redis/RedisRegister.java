@@ -6,11 +6,18 @@ import java.util.Set;
 import av.nado.register.Register;
 import av.nado.remote.NadoProxy;
 import av.nado.remote.RemoteIp;
+import av.redis.Redis;
 import av.util.exception.AException;
 
 public class RedisRegister implements Register
 {
     private Set<RemoteIp> m_setIps;
+    
+    public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
+    {
+        m_setIps = lstIps;
+        Redis.initialize(lstIps);
+    }
     
     public NadoProxy findProxy(String key) throws AException
     {
@@ -44,6 +51,8 @@ public class RedisRegister implements Register
     
     public void registerProxy(String key, String addr, String type) throws AException
     {
+        StringBuilder value = new StringBuilder(addr).append(":").append(type);
+        
         // RedisRegister.instance().addCacheType(bKey.toString());
         // RedisList<String> redisList = new RedisList<>(bKey.toString(),
         // String.class);
@@ -74,11 +83,6 @@ public class RedisRegister implements Register
         // {
         // RedisRegister.instance().unlock(KEY_LOCK_NADO, lock);
         // }
-    }
-    
-    public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
-    {
-        m_setIps = lstIps;
     }
     
     public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException
