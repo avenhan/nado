@@ -131,23 +131,14 @@ public class NettyChannelInfo
             return;
         }
         
-        FunctionTime functionTime = new FunctionTime();
+        this.recvs.addLast(msg);
         try
         {
-            this.recvs.addLast(msg);
-            functionTime.addCurrentTime("store");
-            try
-            {
-                analysisJson();
-            }
-            catch (AException e)
-            {
-                logger.catching(e);
-            }
+            analysisJson();
         }
-        finally
+        catch (AException e)
         {
-            functionTime.print();
+            logger.catching(e);
         }
     }
     
@@ -159,6 +150,7 @@ public class NettyChannelInfo
         }
         
         FunctionTime functionTime = new FunctionTime();
+        functionTime.add("ip", ip.toString());
         
         try
         {
@@ -293,6 +285,7 @@ public class NettyChannelInfo
         // System.currentTimeMillis());
         
         FunctionTime functionTime = new FunctionTime();
+        functionTime.add("ip", ip.toString());
         try
         {
             String buffer = in;
@@ -314,6 +307,7 @@ public class NettyChannelInfo
                     // Trace.print("ip: {} get one json: [{}] left: [{}] current
                     // time: {}", ip, json, buffer, System.currentTimeMillis());
                     onReceiveMessage(json);
+                    functionTime.addCurrentTime("recv json");
                     continue;
                 }
                 
@@ -352,6 +346,8 @@ public class NettyChannelInfo
         }
         
         FunctionTime time = new FunctionTime();
+        time.add("ip", ip.toString());
+        
         try
         {
             NettyWrap wrap = JsonUtil.toObject(NettyWrap.class, json);
@@ -372,6 +368,7 @@ public class NettyChannelInfo
                 
                 time.addCurrentTime("is valid seq1");
                 netty.onReceiveMessage(this, wrap, null);
+                time.addCurrentTime("netty");
                 return;
             }
             
@@ -379,13 +376,14 @@ public class NettyChannelInfo
             time.addCurrentTime("check ack");
             if (info != null && !info.isPost())
             {
-                Trace.print("2 .... seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+                time.addCurrentTime("send ack");
                 // is send routine, do not on receive message
                 return;
             }
             
             // post routine
             netty.onReceiveMessage(this, wrap, info);
+            time.addCurrentTime("netty");
         }
         finally
         {
