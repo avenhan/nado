@@ -146,11 +146,6 @@ public class RedisPool
         }
     }
     
-    public void set(String type, String key, String value) throws AException
-    {
-        set(type, key, value, 0);
-    }
-    
     public void set(String type, String key, String value, long expireTime) throws AException
     {
         String valueTemp = value;

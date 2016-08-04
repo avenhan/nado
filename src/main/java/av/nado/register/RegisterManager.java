@@ -89,9 +89,9 @@ public class RegisterManager
         m_register.setRemoteIp(lstIps);
     }
     
-    public NadoProxy findProxy(String key) throws AException
+    public NadoProxy findProxy(String key, String clientType) throws AException
     {
-        return m_register.findProxy(key);
+        return m_register.findProxy(key, clientType);
     }
     
     public void registerProxy(String key, String addr, String type) throws AException

@@ -1,7 +1,9 @@
 package av.redis;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import av.nado.remote.RemoteIp;
 import av.util.exception.AException;
@@ -70,6 +72,22 @@ public class RedisClusterPool
         return imagePool;
     }
     
+    public Set<String> keys(String type, String pattern) throws AException
+    {
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            if (mapPool.isEmpty())
+            {
+                throw new AException(AException.ERR_SERVER, "empty redis pool");
+            }
+            
+            RedisPool pool = getOnePool();
+            return pool.keys(type, pattern);
+        }
+        
+        return new HashSet<String>();
+    }
+    
     /***
      * 
      * @param type
@@ -95,26 +113,82 @@ public class RedisClusterPool
     
     public void delete(String type, String key) throws AException
     {
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            if (mapPool.isEmpty())
+            {
+                throw new AException(AException.ERR_SERVER, "empty redis pool");
+            }
+            
+            for (Map.Entry<RemoteIp, RedisPool> entry : mapPool.entrySet())
+            {
+                RedisPool pool = entry.getValue();
+                if (pool == null)
+                {
+                    continue;
+                }
+                
+                pool.delete(type, key);
+            }
+            
+            return;
+        }
     }
     
     public String get(String type, String key) throws AException
     {
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            RedisPool pool = getOnePool();
+            return pool.get(type, key);
+        }
         
         return null;
     }
     
     public void set(String type, String key, String value, long expireTime) throws AException
     {
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            if (mapPool.isEmpty())
+            {
+                throw new AException(AException.ERR_SERVER, "empty redis pool");
+            }
+            
+            for (Map.Entry<RemoteIp, RedisPool> entry : mapPool.entrySet())
+            {
+                RedisPool pool = entry.getValue();
+                if (pool == null)
+                {
+                    continue;
+                }
+                
+                pool.set(type, key, value, expireTime);
+            }
+            
+            return;
+        }
     }
     
     public boolean lock(String type, String key) throws AException
     {
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            RedisPool pool = getOnePool();
+            return pool.lock(type, key);
+        }
         
         return false;
     }
     
     public void unlock(String type, String key) throws AException
     {
-        
+        if (this.type == RedisClusterType.CLUSTER_TYPE_IMAGE)
+        {
+            RedisPool pool = getOnePool();
+            pool.unlock(type, key);
+            
+            return;
+        }
     }
 }

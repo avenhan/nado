@@ -9,7 +9,7 @@ import av.util.exception.AException;
 
 public interface Register
 {
-    public NadoProxy findProxy(String key) throws AException;
+    public NadoProxy findProxy(String key, String clientType) throws AException;
     
     public void registerProxy(String key, String addr, String type) throws AException;
     

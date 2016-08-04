@@ -166,7 +166,7 @@ public class NadoRemote
             return null;
         }
         
-        proxy = RegisterManager.instance().findProxy(key);
+        proxy = RegisterManager.instance().findProxy(key, clientType);
         connectClient(proxy);
         return proxy;
     }

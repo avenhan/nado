@@ -23,7 +23,7 @@ public class ZookRegister implements Register
     
     private Set<RemoteIp>      m_setIps;
     
-    public NadoProxy findProxy(String key) throws AException
+    public NadoProxy findProxy(String key, String clientType) throws AException
     {
         StringBuilder b = new StringBuilder(KEY_NADO_ROOT).append("/").append(key);
         List<String> lstIps = Zookeeper.instance().children(b.toString());
@@ -33,13 +33,21 @@ public class ZookRegister implements Register
         
         for (String ip : lstIps)
         {
-            proxy.addIp(ip);
+            StringBuilder ipBuilder = new StringBuilder(b).append("/").append(ip);
+            String value = Zookeeper.instance().toString(ipBuilder.toString());
+            
+            if (!Check.IfOneEmpty(clientType) && !value.equalsIgnoreCase(clientType))
+            {
+                continue;
+            }
+            
+            proxy.addIp(ip, value);
         }
         
         return proxy;
     }
     
-    public void registerProxy(String key, String addr, String type) throws AException
+    public void registerProxy(String key, String addr, String clientType) throws AException
     {
         if (Check.IfOneEmpty(key, addr))
         {
@@ -51,7 +59,7 @@ public class ZookRegister implements Register
         Zookeeper.instance().create(b.toString(), "");
         
         b.append("/").append(addr);
-        Zookeeper.instance().create(b.toString(), type, CreateMode.EPHEMERAL);
+        Zookeeper.instance().create(b.toString(), clientType, CreateMode.EPHEMERAL);
     }
     
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
@@ -94,7 +102,7 @@ public class ZookRegister implements Register
                 StringBuilder ipBuilder = new StringBuilder(b).append("/").append(ip);
                 String value = Zookeeper.instance().toString(ipBuilder.toString());
                 
-                if (!value.equalsIgnoreCase(clientType))
+                if (!Check.IfOneEmpty(clientType) && !value.equalsIgnoreCase(clientType))
                 {
                     continue;
                 }

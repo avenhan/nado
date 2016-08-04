@@ -120,7 +120,7 @@ public class Redis
             return new HashSet<String>();
         }
         
-        return null;
+        return clusterPool.keys(type, pattern);
     }
     
     public static boolean exists(String type, String key) throws AException
@@ -131,7 +131,7 @@ public class Redis
             return false;
         }
         
-        return false;
+        return clusterPool.exists(type, key);
     }
     
     public static void delete(String type, String key) throws AException
@@ -141,6 +141,8 @@ public class Redis
         {
             return;
         }
+        
+        clusterPool.delete(type, key);
     }
     
     public static String get(String type, String key) throws AException
@@ -151,7 +153,7 @@ public class Redis
             return null;
         }
         
-        return null;
+        return clusterPool.get(type, key);
     }
     
     public static void set(String type, String key, String value) throws AException
@@ -166,6 +168,8 @@ public class Redis
         {
             return;
         }
+        
+        clusterPool.set(type, key, value, expireTime);
     }
     
     public static boolean lock(String type, String key) throws AException
@@ -176,11 +180,17 @@ public class Redis
             throw new AException(AException.ERR_SERVER, "not existed type: {}", type);
         }
         
-        return false;
+        return clusterPool.lock(type, key);
     }
     
     public static void unlock(String type, String key) throws AException
     {
+        RedisClusterPool clusterPool = m_mapClusterPool.get(type);
+        if (clusterPool == null)
+        {
+            throw new AException(AException.ERR_SERVER, "not existed type: {}", type);
+        }
         
+        clusterPool.unlock(type, key);
     }
 }
