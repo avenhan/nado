@@ -29,7 +29,6 @@ public class QuartzManager
 {
     private static Logger        logger         = LogManager.getLogger(QuartzManager.class);
     public static final String   KEY_GROUP_NAME = "nado";
-    public static final String   KEY_METHOD     = "method#";
     public static final String   KEY_ID         = "quartz";
     
     private static QuartzManager m_pThis;
@@ -40,6 +39,8 @@ public class QuartzManager
     {
         QuartzManager.instance().addJob(QuartzManager.instance(), "onTimerTest", "aven");
         
+        QuartzManager.instance().addJob(QuartzManager.instance(), "onTimerTest", "who");
+        
         while (true)
         {
             Thread.sleep(5000);
@@ -47,9 +48,11 @@ public class QuartzManager
     }
     
     @Timer(cron = "*/2 * * * * ?", count = 10, exclusive = true)
-    protected void onTimerTest(String name) throws AException
+    protected boolean onTimerTest(String name) throws AException
     {
         Trace.print("do timer name: {} time: {}", name, System.currentTimeMillis());
+        
+        return false;
     }
     
     private QuartzManager() throws AException
@@ -85,7 +88,7 @@ public class QuartzManager
             String type = trace.getClassName();
             time.addCurrentTime("get trace");
             
-            String jobName = new StringBuilder(KEY_METHOD).append(type).append(".").append(method).toString();
+            String jobName = new StringBuilder().append(type).append(".").append(method).toString();
             pause(jobName);
         }
         finally
@@ -130,7 +133,7 @@ public class QuartzManager
             String type = trace.getClassName();
             time.addCurrentTime("get trace");
             
-            String jobName = new StringBuilder(KEY_METHOD).append(type).append(".").append(method).toString();
+            String jobName = new StringBuilder().append(type).append(".").append(method).toString();
             delete(jobName);
         }
         finally
@@ -249,9 +252,14 @@ public class QuartzManager
                 break;
             }
             
+            if (timer == null)
+            {
+                throw new AException(AException.ERR_SERVER, "not found timer function");
+            }
+            
             time.addCurrentTime("method");
             
-            String jobName = new StringBuilder(KEY_METHOD).append(obj.getClass().getName()).append(".").append(methodName).toString();
+            String jobName = new StringBuilder().append(obj.getClass().getName()).append(".").append(methodName).toString();
             MethodAccess methodAccess = MethodAccess.get(obj.getClass());
             QuartzInfo info = new QuartzInfo();
             info.setObjInvoke(obj);
@@ -274,17 +282,76 @@ public class QuartzManager
         }
     }
     
-    public void addJob(QuartzInfo info) throws AException
+    public void addJob(String cron, String remoteType, String method, Object... params) throws AException
     {
-        if (Check.IfOneEmpty(info) || Check.IfOneEmpty(info.getJobName(), info.getMethodName()))
+        addJob(cron, false, -1, remoteType, method, params);
+    }
+    
+    public void addJob(String cron, int repeatCount, String remoteType, String method, Object... params) throws AException
+    {
+        addJob(cron, false, repeatCount, remoteType, method, params);
+    }
+    
+    public void addJob(String cron, boolean exclusive, String remoteType, String method, Object... params) throws AException
+    {
+        addJob(cron, false, -1, remoteType, method, params);
+    }
+    
+    public void addJob(String cron, boolean exclusive, int repeatCount, String remoteType, String method, Object... params) throws AException
+    {
+        QuartzInfo info = new QuartzInfo();
+        info.setTimeout(0);
+        info.setOnce(repeatCount);
+        info.setMethodName(method);
+        info.setRemoteType(remoteType);
+        info.setParams(params);
+        info.setCronTime(cron);
+        info.setExclusive(exclusive);
+        
+        addJob(info);
+    }
+    
+    public void addJob(long timeOut, String remoteType, String method, Object... params) throws AException
+    {
+        addJob(timeOut, false, -1, remoteType, method, params);
+    }
+    
+    public void addJob(long timeOut, int repeatCount, String remoteType, String method, Object... params) throws AException
+    {
+        addJob(timeOut, false, repeatCount, remoteType, method, params);
+    }
+    
+    public void addJob(long timeOut, boolean exclusive, String remoteType, String method, Object... params) throws AException
+    {
+        addJob(timeOut, exclusive, -1, remoteType, method, params);
+    }
+    
+    public void addJob(long timeOut, boolean exclusive, int repeatCount, String remoteType, String method, Object... params) throws AException
+    {
+        QuartzInfo info = new QuartzInfo();
+        info.setTimeout(timeOut);
+        info.setOnce(repeatCount);
+        info.setMethodName(method);
+        info.setRemoteType(remoteType);
+        info.setParams(params);
+        info.setCronTime("");
+        info.setExclusive(exclusive);
+        
+        addJob(info);
+    }
+    
+    private void addJob(QuartzInfo info) throws AException
+    {
+        if (Check.IfOneEmpty(info) || Check.IfOneEmpty(info.getMethodName()))
         {
             throw new AException(AException.ERR_SERVER, "invalid parameter");
         }
         
-        String groupNameTemp = info.getGroupName();
-        if (Check.IfOneEmpty(groupNameTemp))
+        info.setGroupName(this.groupName);
+        if (info.getMethodAccess() == null && !Check.IfOneEmpty(info.getRemoteType()))
         {
-            info.setGroupName(groupName);
+            StringBuilder b = new StringBuilder().append(info.getRemoteType()).append(".").append(info.getMethodName());
+            info.setJobName(b.toString());
         }
         
         FunctionTime time = new FunctionTime();

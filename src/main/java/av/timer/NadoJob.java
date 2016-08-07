@@ -69,13 +69,32 @@ public abstract class NadoJob implements Job
         }
         
         MethodAccess methodAccess = info.getMethodAccess();
+        Object objRet = null;
         if (methodAccess != null)
         {
-            methodAccess.invoke(info.getObjInvoke(), info.getMethodName(), info.getArrParams());
+            objRet = methodAccess.invoke(info.getObjInvoke(), info.getMethodName(), info.getArrParams());
         }
         else
         {
-            NadoRemote.instance().invoke(info.getRemoteType(), info.getMethodName(), info.getArrParams());
+            objRet = NadoRemote.instance().invoke(info.getRemoteType(), info.getMethodName(), info.getArrParams());
+        }
+        
+        if (objRet != null && objRet instanceof Boolean)
+        {
+            Boolean continueFlag = (Boolean) objRet;
+            if (!continueFlag)
+            {
+                try
+                {
+                    QuartzManager.instance().delete(name);
+                    return;
+                }
+                catch (AException e)
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         }
         
         if (info.getOnce() > 0 && !Check.IfOneEmpty(info.getCronTime()) && info.getRuns().get() >= info.getOnce())

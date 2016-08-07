@@ -14,7 +14,6 @@ import av.nado.remote.NadoRemote;
 import av.nado.util.CompareKey;
 import av.nado.util.CompareType;
 import av.nado.util.JsonUtil;
-import av.timer.QuartzInfo;
 import av.timer.QuartzManager;
 import av.util.exception.AException;
 import av.util.trace.Trace;
@@ -76,17 +75,9 @@ public class TestClient
     
     private static void testTimer()
     {
-        QuartzInfo info = new QuartzInfo();
-        info.setTimeout(2000);
-        info.setOnce(5);
-        info.setJobName(TestRemoteTimer.class.getName());
-        info.setMethodName("testTimer");
-        info.setRemoteType(TestRemoteTimer.class.getName());
-        info.setParams(1);
-        
         try
         {
-            QuartzManager.instance().addJob(info);
+            QuartzManager.instance().addJob(2000L, 5, TestRemoteTimer.class.getName(), "testTimer", 1);
         }
         catch (AException e)
         {
