@@ -3,6 +3,7 @@ package av.redis;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +31,6 @@ public class Redis
     private static Map<RemoteIp, RedisPool>      m_mapRedisPool            = new ConcurrentHashMap<RemoteIp, RedisPool>();
     private static Map<String, RedisClusterPool> m_mapClusterPool          = new HashMap<String, RedisClusterPool>();
     
-    
     static
     {
         m_mapClusterType.put(KEY_CLUSTER_TYPE_IMAGE, RedisClusterType.CLUSTER_TYPE_IMAGE);
@@ -41,12 +41,11 @@ public class Redis
     {
         initialize("test", KEY_CLUSTER_TYPE_SHARDING, RemoteIp.getRemoteIp("127.0.0.1:6379"));
         
-
     }
     
     public static void initialize(String name, String type, RemoteIp... ips) throws AException
     {
-        Set<RemoteIp> setIps = new HashSet<RemoteIp>();
+        Set<RemoteIp> setIps = new LinkedHashSet<RemoteIp>();
         for (RemoteIp remoteIp : ips)
         {
             if (remoteIp == null)

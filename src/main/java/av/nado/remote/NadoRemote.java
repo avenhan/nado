@@ -12,13 +12,15 @@ import av.nado.base.NadoSetting;
 import av.nado.network.NetworkManager;
 import av.nado.network.NetworkStatus;
 import av.nado.register.RegisterManager;
+import av.nado.register.RegisterNotify;
 import av.nado.util.Aggregate;
 import av.nado.util.Check;
 import av.nado.util.XmlUtil;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
+import av.util.trace.Trace;
 
-public class NadoRemote
+public class NadoRemote implements RegisterNotify
 {
     private static Logger          logger     = LogManager.getLogger(NadoRemote.class);
     private static NadoRemote      m_pThis;
@@ -62,6 +64,7 @@ public class NadoRemote
             
             m_network.setNetworkType(clientType);
             loadRemoteAddress();
+            RegisterManager.instance().setNotify(this);
         }
         catch (Exception e)
         {
@@ -193,5 +196,34 @@ public class NadoRemote
         }
         
         proxy.setLstRemoteIps(lstConnectedIps);
+    }
+    
+    public void onRegisterNotify(Map<String, NadoProxy> mapProxy) throws AException
+    {
+        for (Map.Entry<String, NadoProxy> entry : mapProxy.entrySet())
+        {
+            NadoProxy proxy = entry.getValue();
+            NadoProxy existProxy = m_mapProxy.get(entry.getKey());
+            if (existProxy == null)
+            {
+                connectClient(proxy);
+                m_mapProxy.put(entry.getKey(), proxy);
+                
+                Trace.print("add client key: {} count: {}", entry.getKey(), proxy.getLstRemoteIps().size());
+                continue;
+            }
+            
+            for (RemoteIp remoteIp : proxy.getLstRemoteIps())
+            {
+                if (existProxy.contain(remoteIp))
+                {
+                    continue;
+                }
+                
+                RemoteIp ip = m_network.startClient(remoteIp);
+                existProxy.addIp(ip);
+                Trace.print("add client: {}.{}", ip, ip.getType());
+            }
+        }
     }
 }

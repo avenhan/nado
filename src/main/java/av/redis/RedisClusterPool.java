@@ -12,8 +12,9 @@ public class RedisClusterPool
 {
     private String                   name;
     private RedisClusterType         type;
-    private Map<RemoteIp, RedisPool> mapPool = new HashMap<RemoteIp, RedisPool>();
-    private RedisPool                imagePool = null;
+    private Map<RemoteIp, RedisPool> mapPool    = new HashMap<RemoteIp, RedisPool>();
+    private RedisPool                imagePool  = null;
+    private RedisPool                masterPool = null;
     
     public String getName()
     {
@@ -35,6 +36,16 @@ public class RedisClusterPool
         this.type = type;
     }
     
+    public RedisPool getMasterPool()
+    {
+        return masterPool;
+    }
+    
+    public void setMasterPool(RedisPool masterPool)
+    {
+        this.masterPool = masterPool;
+    }
+    
     public Map<RemoteIp, RedisPool> getMapPool()
     {
         return mapPool;
@@ -47,7 +58,7 @@ public class RedisClusterPool
     
     private RedisPool getOnePool() throws AException
     {
-        if (imagePool != null)
+        if (imagePool != null && imagePool.isConnected())
         {
             return imagePool;
         }
@@ -55,7 +66,7 @@ public class RedisClusterPool
         for (Map.Entry<RemoteIp, RedisPool> entry : mapPool.entrySet())
         {
             RedisPool pool = entry.getValue();
-            if (pool == null)
+            if (pool == null || !pool.isConnected())
             {
                 continue;
             }

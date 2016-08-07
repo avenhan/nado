@@ -18,5 +18,6 @@
 	<!-- remote ip list -->
 	<remote>av.nado.test.TestRemote</remote>
 	<remote>av.nado.test.TestOutput</remote>
+	<remote>av.nado.test.TestRemoteTimer</remote>
 	
 </aven>

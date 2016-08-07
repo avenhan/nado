@@ -9,20 +9,28 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import av.nado.register.Register;
+import av.nado.register.RegisterNotify;
 import av.nado.remote.NadoProxy;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Check;
 import av.redis.Redis;
+import av.timer.QuartzManager;
+import av.timer.Timer;
 import av.util.exception.AException;
+import av.util.trace.Trace;
 
 public class RedisRegister implements Register
 {
-    public static final long   KEY_REDIS_TIME_OUT = 10000;
-    public static final String KEY_REDIS = "nado";
-    public static final String KEY_REDIS_LOCK  = "nado:lock";
-    public static final String KEY_REDIS_PROXY = "nado:proxy";
+    public static final long       KEY_REDIS_TIME_OUT = 10000;
+    public static final String     KEY_REDIS          = "nado";
+    public static final String     KEY_REDIS_LOCK     = "nado:lock";
+    public static final String     KEY_REDIS_PROXY    = "nado:proxy";
     
-    private Set<RemoteIp> m_setIps;
+    private Set<RemoteIp>          m_setIps;
+    private RegisterNotify         m_notify;
+    private Map<String, String>    m_mapRegister      = new HashMap<String, String>();
+    private String                 lastClientType;
+    private Map<String, NadoProxy> m_mapLoadProxy     = new HashMap<String, NadoProxy>();
     
     public static void main(String[] arg) throws Exception
     {
@@ -38,6 +46,11 @@ public class RedisRegister implements Register
         
         Map<String, NadoProxy> map = register.loadRemoteIps("tcp");
         System.out.println("map size: " + map.size());
+        
+        while (true)
+        {
+            Thread.sleep(10000);
+        }
     }
     
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException
@@ -74,29 +87,14 @@ public class RedisRegister implements Register
     public void registerProxy(String key, String addr, String type) throws AException
     {
         String value = new StringBuilder(addr).append(":").append(type).toString();
-        Redis.lock(KEY_REDIS_LOCK, key);
-        
-        try
-        {
-            String existedProxy = Redis.get(KEY_REDIS_PROXY, key);
-            Set<String> setExisted = getAsProxys(existedProxy);
-            if (setExisted.contains(value))
-            {
-                return;
-            }
-            
-            setExisted.add(value);
-            Redis.set(KEY_REDIS_PROXY, key, proxyToString(setExisted), KEY_REDIS_TIME_OUT);
-        }
-        finally
-        {
-            Redis.unlock(KEY_REDIS_LOCK, key);
-        }
+        registerPoxy(key, value);
+        m_mapRegister.put(key, value);
     }
     
     public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException
     {
         Map<String, NadoProxy> mapRet = new HashMap<String, NadoProxy>();
+        lastClientType = clientType;
         
         Set<String> keys = Redis.keys(KEY_REDIS_PROXY, "*");
         for (String key : keys)
@@ -124,6 +122,28 @@ public class RedisRegister implements Register
         }
         
         return mapRet;
+    }
+    
+    private void registerPoxy(String key, String value) throws AException
+    {
+        Redis.lock(KEY_REDIS_LOCK, key);
+        
+        try
+        {
+            String existedProxy = Redis.get(KEY_REDIS_PROXY, key);
+            Set<String> setExisted = getAsProxys(existedProxy);
+            if (setExisted.contains(value))
+            {
+                return;
+            }
+            
+            setExisted.add(value);
+            Redis.set(KEY_REDIS_PROXY, key, proxyToString(setExisted), KEY_REDIS_TIME_OUT);
+        }
+        finally
+        {
+            Redis.unlock(KEY_REDIS_LOCK, key);
+        }
     }
     
     private Set<String> getAsProxys(String value)
@@ -169,5 +189,87 @@ public class RedisRegister implements Register
         }
         
         return b.toString();
+    }
+    
+    @Timer(time = 3000, exclusive = true)
+    protected void onTimerRegister() throws AException
+    {
+        Trace.print("on timer ...");
+        for (Map.Entry<String, String> entry : m_mapRegister.entrySet())
+        {
+            Trace.print("register key: {} value: {}", entry.getKey(), entry.getValue());
+            registerPoxy(entry.getKey(), entry.getValue());
+        }
+    }
+    
+    @Timer(time = 5000, exclusive = true)
+    protected void onTimerLoadProxy() throws AException
+    {
+        Trace.print("on timer ...");
+        
+        if (Check.IfOneEmpty(lastClientType))
+        {
+            return;
+        }
+        
+        if (m_notify == null)
+        {
+            QuartzManager.instance().delete();
+            return;
+        }
+        
+        Map<String, NadoProxy> mapNotifyProxy = new HashMap<String, NadoProxy>();
+        
+        Map<String, NadoProxy> mapProxy = loadRemoteIps(lastClientType);
+        for (Map.Entry<String, NadoProxy> entry : mapProxy.entrySet())
+        {
+            NadoProxy proxy = entry.getValue();
+            NadoProxy existProxy = m_mapLoadProxy.get(entry.getKey());
+            if (existProxy == null)
+            {
+                mapNotifyProxy.put(entry.getKey(), proxy);
+                m_mapLoadProxy.put(entry.getKey(), proxy);
+                continue;
+            }
+            
+            NadoProxy addProxy = new NadoProxy();
+            addProxy.setName(entry.getKey());
+            
+            for (RemoteIp remoteIp : proxy.getLstRemoteIps())
+            {
+                if (!existProxy.contain(remoteIp))
+                {
+                    addProxy.addIp(remoteIp);
+                    existProxy.addIp(remoteIp);
+                }
+            }
+            
+            if (Check.IfOneEmpty(addProxy.getLstRemoteIps()))
+            {
+                continue;
+            }
+            
+            mapNotifyProxy.put(entry.getKey(), addProxy);
+        }
+        
+        if (Check.IfOneEmpty(mapNotifyProxy))
+        {
+            return;
+        }
+        
+        m_notify.onRegisterNotify(mapNotifyProxy);
+    }
+    
+    public void setNotify(RegisterNotify notify) throws AException
+    {
+        m_notify = notify;
+        if (m_notify == null)
+        {
+            QuartzManager.instance().addJob(this, "onTimerRegister");
+        }
+        else
+        {
+            QuartzManager.instance().addJob(this, "onTimerLoadProxy");
+        }
     }
 }

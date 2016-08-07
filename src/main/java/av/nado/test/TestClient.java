@@ -14,6 +14,8 @@ import av.nado.remote.NadoRemote;
 import av.nado.util.CompareKey;
 import av.nado.util.CompareType;
 import av.nado.util.JsonUtil;
+import av.timer.QuartzInfo;
+import av.timer.QuartzManager;
 import av.util.exception.AException;
 import av.util.trace.Trace;
 
@@ -32,16 +34,15 @@ public class TestClient
     public static void main(String[] args) throws Exception
     {
         Trace.setLog(true);
-        TestServer.main1(args);
+        TestServer.startServer();
         
         NadoRemote.instance().loadConfig("conf/nado.xml");
         
         ProxyManager.instance().setTypes(TestRemoteInter.class, "av.nado.test.TestRemote", TestOutputInter.class, "av.nado.test.TestOutput");
         
-        test();
+        testTimer();
         
         m_schedule = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
-        
         m_schedule.scheduleWithFixedDelay(new Runnable()
         {
             
@@ -51,11 +52,11 @@ public class TestClient
                 {
                     if (count % 2 == 0)
                     {
-                        test();
+                        // test();
                     }
                     else
                     {
-                        testInterface();
+                        // testInterface();
                     }
                     
                     count++;
@@ -66,6 +67,32 @@ public class TestClient
                 }
             }
         }, 100, 5000, TimeUnit.MILLISECONDS);
+        
+        while (true)
+        {
+            Thread.sleep(5000);
+        }
+    }
+    
+    private static void testTimer()
+    {
+        QuartzInfo info = new QuartzInfo();
+        info.setTimeout(2000);
+        info.setOnce(5);
+        info.setJobName(TestRemoteTimer.class.getName());
+        info.setMethodName("testTimer");
+        info.setRemoteType(TestRemoteTimer.class.getName());
+        info.setParams(1);
+        
+        try
+        {
+            QuartzManager.instance().addJob(info);
+        }
+        catch (AException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
     private static void test()

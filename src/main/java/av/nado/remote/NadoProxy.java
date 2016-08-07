@@ -28,6 +28,16 @@ public class NadoProxy
         this.lstRemoteIps = lstRemoteIps;
     }
     
+    public void addIp(RemoteIp remoteIp)
+    {
+        if (remoteIp == null)
+        {
+            return;
+        }
+        
+        lstRemoteIps.add(remoteIp);
+    }
+    
     public void addIp(String ip)
     {
         RemoteIp remoteIp = RemoteIp.getRemoteIp(ip);
@@ -48,5 +58,18 @@ public class NadoProxy
         }
         remoteIp.setType(type);
         lstRemoteIps.add(remoteIp);
+    }
+    
+    public boolean contain(RemoteIp ip)
+    {
+        for (RemoteIp remoteIp : lstRemoteIps)
+        {
+            if (remoteIp.equals(ip) && remoteIp.getType().equals(ip.getType()))
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

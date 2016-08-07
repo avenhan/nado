@@ -16,4 +16,6 @@ public interface Register
     public void setRemoteIp(Set<RemoteIp> lstIps) throws AException;
     
     public Map<String, NadoProxy> loadRemoteIps(String clientType) throws AException;
+    
+    public void setNotify(RegisterNotify notify) throws AException;
 }

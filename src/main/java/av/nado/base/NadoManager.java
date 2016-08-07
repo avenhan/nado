@@ -34,14 +34,14 @@ import av.util.trace.Trace;
 
 public class NadoManager
 {
-    public static final String       KEY_FILE_NAME = "nado.xml";
+    public static final String       KEY_FILE_NAME   = "nado.xml";
     
-    private static Logger            logger        = LogManager.getLogger(NadoManager.class);
+    private static Logger            logger          = LogManager.getLogger(NadoManager.class);
     private static NadoManager       m_pThis;
     private InetAddress              m_addr;
     private NadoSetting              m_setting;
     private Map<String, Integer>     m_mapServerInfo = new HashMap<String, Integer>();
-    private Map<String, NadoInfo<?>> m_mapInfo     = new ConcurrentHashMap<String, NadoInfo<?>>();
+    private Map<String, NadoInfo<?>> m_mapInfo       = new ConcurrentHashMap<String, NadoInfo<?>>();
     
     protected NadoManager()
     {
@@ -100,6 +100,7 @@ public class NadoManager
             }
             
             addLoadedClasses("", mapInfo);
+            RegisterManager.instance().setNotify(null);
         }
         catch (Exception e)
         {

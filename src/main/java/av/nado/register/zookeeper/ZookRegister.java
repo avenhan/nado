@@ -8,6 +8,7 @@ import java.util.Set;
 import org.apache.zookeeper.CreateMode;
 
 import av.nado.register.Register;
+import av.nado.register.RegisterNotify;
 import av.nado.remote.NadoProxy;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Check;
@@ -22,6 +23,7 @@ public class ZookRegister implements Register
     public static final int    KEY_TIME_TIMEOUT = 10000;
     
     private Set<RemoteIp>      m_setIps;
+    private RegisterNotify     m_notify;
     
     public NadoProxy findProxy(String key, String clientType) throws AException
     {
@@ -137,5 +139,10 @@ public class ZookRegister implements Register
         List<String> lstChild = Zookeeper.instance().children("/nado");
         
         Trace.print(lstChild.toString());
+    }
+    
+    public void setNotify(RegisterNotify notify) throws AException
+    {
+        m_notify = notify;
     }
 }
