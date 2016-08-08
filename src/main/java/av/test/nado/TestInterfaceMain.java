@@ -1,4 +1,4 @@
-package av.nado.test;
+package av.test.nado;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

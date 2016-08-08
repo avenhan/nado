@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://code.alibabatech.com/schema/dubbo
+	http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+	
+	<dubbo:application name="nado"/>
+    <dubbo:registry  protocol="redis" address="127.0.0.1:6379"/>
+    <dubbo:protocol name="dubbo" port="20888" threadpool="fixed" threads="10" queues="0" iothreads="5" accepts="1000" buffer="8192"  /> 
+    <dubbo:provider timeout="8000"/>
+
+	<bean id="TestRemote" class="av.test.nado.TestRemote"> </bean>
+	<bean id="TestOutput" class="av.test.nado.TestOutput"> </bean>
+	
+	<dubbo:service interface="av.test.nado.TestRemoteInter" ref="TestRemote" version="1.0" timeout="8000" />
+    <dubbo:service interface="av.test.nado.TestOutputInter" ref="TestOutput" version="1.0" timeout="8000" />
+    
+</beans>

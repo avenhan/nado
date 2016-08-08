@@ -19,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 import com.caucho.hessian.io.HessianInput;
 import com.caucho.hessian.io.HessianOutput;
 
-import av.nado.test.TestRemote;
 import av.nado.util.Check;
 import av.nado.util.CompareKey;
 import av.nado.util.CompareType;
@@ -27,6 +26,7 @@ import av.nado.util.JsonUtil;
 import av.nado.util.MDHelper;
 import av.netty.Command;
 import av.netty.NettyWrap;
+import av.test.nado.TestRemote;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
 import av.util.trace.Trace;

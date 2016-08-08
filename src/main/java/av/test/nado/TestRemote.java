@@ -1,8 +1,10 @@
-package av.nado.test;
+package av.test.nado;
+
+import java.io.Serializable;
 
 import av.nado.annotation.Remote;
 
-public class TestRemote implements TestRemoteInter
+public class TestRemote implements TestRemoteInter, Serializable
 {
     /**
      * 

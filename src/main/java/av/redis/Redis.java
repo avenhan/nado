@@ -88,8 +88,13 @@ public class Redis
             }
             
             JedisPoolConfig config = new JedisPoolConfig();
-            config.setMaxTotal(KEY_MAX_TOTAL);
-            config.setMaxWaitMillis(KEY_MAX_WAIT_TIME);
+            // version 2.8
+            // config.setMaxTotal(KEY_MAX_TOTAL);
+            // config.setMaxWaitMillis(KEY_MAX_WAIT_TIME);
+            
+            // version 2.2
+            config.setMaxActive(KEY_MAX_TOTAL);
+            config.setMaxWait(KEY_MAX_WAIT_TIME);
             
             JedisPool pool = new JedisPool(config, remoteIp.getIp(), remoteIp.getPort());
             redisPool = new RedisPool();

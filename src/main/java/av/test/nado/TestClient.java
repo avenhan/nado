@@ -1,4 +1,4 @@
-package av.nado.test;
+package av.test.nado;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

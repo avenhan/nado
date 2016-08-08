@@ -1,4 +1,4 @@
-package av.nado.test;
+package av.test.nado;
 
 import java.util.ArrayList;
 import java.util.List;

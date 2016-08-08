@@ -1,4 +1,4 @@
-package av.nado.test;
+package av.test.nado;
 
 import java.util.List;
 import java.util.Map;
