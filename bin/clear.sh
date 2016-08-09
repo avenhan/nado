@@ -121,7 +121,6 @@ if [ -n "$apps" ];then
         		fi
     		done
 	done
-
 fi
 
 
