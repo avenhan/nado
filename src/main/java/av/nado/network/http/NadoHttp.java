@@ -45,7 +45,7 @@ public class NadoHttp implements BaseNetwork
         String json = JsonUtil.toJson(obj);
         // header information
         
-        Trace.debug("nado url: {} post: {}", url, json);
+        Trace.print("nado url: {} post: {}", url, json);
         Aggregate<Integer, String> aggregate = HttpHelper.post(url, json, this.mapHeader);
         if (aggregate == null)
         {

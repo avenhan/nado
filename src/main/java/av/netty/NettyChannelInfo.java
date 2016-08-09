@@ -198,7 +198,7 @@ public class NettyChannelInfo
         
         if (!channel.isConnected() || !channel.isOpen())
         {
-            Trace.debug("channel: {} is closed...", ip);
+            Trace.print("channel: {} is closed...", ip);
             return;
         }
         
@@ -261,7 +261,7 @@ public class NettyChannelInfo
         
         if (!channel.isConnected() || !channel.isOpen())
         {
-            Trace.debug("channel: {} is closed...", ip);
+            Trace.print("channel: {} is closed...", ip);
             return -1;
         }
         

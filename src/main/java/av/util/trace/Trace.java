@@ -1,27 +1,33 @@
 package av.util.trace;
 
+import java.io.FileInputStream;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.ConfigurationFactory.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 
 public class Trace
 {
     private static Logger  logger       = LogManager.getLogger(Trace.class);
     private static boolean m_isGetTrace = true;
-    private static boolean m_isLog      = false;
+    
+    static
+    {
+        try
+        {
+            ConfigurationSource source = new ConfigurationSource(new FileInputStream("conf/log4j2.xml"));
+            Configurator.initialize(null, source);
+        }
+        catch (Exception e)
+        {
+            logger.catching(e);
+        }
+    }
     
     public static void initialize(boolean isGetTrace)
     {
         m_isGetTrace = isGetTrace;
-    }
-    
-    public static void setLog(boolean isLog)
-    {
-        m_isLog = isLog;
-    }
-    
-    public static boolean isLog()
-    {
-        return m_isLog;
     }
     
     public static boolean isGetTrace()
@@ -160,37 +166,7 @@ public class Trace
             return ret;
         }
         
-        // if (m_isLog)
-        // {
-        // logger.debug(ret);
-        // }
-        // else
-        // {
-        // System.out.println(ret);
-        // }
-        
         logger.debug(ret);
         return ret;
-    }
-    
-    public static void debug(String text)
-    {
-        if (!m_isGetTrace)
-        {
-            return;
-        }
-        String info = print(text);
-        logger.debug(info);
-    }
-    
-    public static void debug(String format, Object... objs)
-    {
-        if (!m_isGetTrace)
-        {
-            return;
-        }
-        
-        String info = print(format, objs);
-        logger.debug(info);
     }
 }

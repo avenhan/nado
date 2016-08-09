@@ -206,7 +206,7 @@ public class NadoManager
             Map<String, List<NadoMethodInfo>> map = info.getMapMethodExplains();
             for (String method : map.keySet())
             {
-                Trace.debug("add remote class: {}, method: {}", type, method);
+                Trace.print("add remote class: {}, method: {}", type, method);
                 try
                 {
                     addMethodToRegister(type, method);
@@ -254,7 +254,7 @@ public class NadoManager
         try
         {
             dirs = Thread.currentThread().getContextClassLoader().getResources(packageDirName);
-            Trace.debug("search dir: {}", dirs);
+            Trace.print("search dir: {}", dirs);
             // 循环迭代下去
             while (dirs.hasMoreElements())
             {
@@ -265,7 +265,7 @@ public class NadoManager
                 // 如果是以文件的形式保存在服务器上
                 if ("file".equals(protocol))
                 {
-                    Trace.debug("packe: {} file类型的扫描", pack);
+                    Trace.print("packe: {} file类型的扫描", pack);
                     // 获取包的物理路径
                     String filePath = URLDecoder.decode(url.getFile(), "UTF-8");
                     // 以文件的方式扫描整个包下的文件 并添加到集合中
@@ -275,7 +275,7 @@ public class NadoManager
                 {
                     // 如果是jar包文件
                     // 定义一个JarFile
-                    Trace.debug("packe: {} jar类型的扫描", pack);
+                    Trace.print("packe: {} jar类型的扫描", pack);
                     try
                     {
                         findClassesFromJar(url, packageName, packageDirName, classes, filter);
@@ -301,7 +301,7 @@ public class NadoManager
         String packageName = pack;
         JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
         
-        Trace.debug("pack: {}, pack dir: {}, url: {}", pack, packageDirName, url.toString());
+        Trace.print("pack: {}, pack dir: {}, url: {}", pack, packageDirName, url.toString());
         
         // 从此jar包 得到一个枚举类
         Enumeration<JarEntry> entries = jar.entries();
@@ -337,7 +337,7 @@ public class NadoManager
                         String className = name.substring(packageName.length() + 1, name.length() - 6);
                         try
                         {
-                            Trace.debug("jar: " + packageName + '.' + className);
+                            Trace.print("jar: " + packageName + '.' + className);
                             Class<?> type = Class.forName(packageName + '.' + className);
                             if (filter == null || (filter != null && filter.accept(type)))
                             {

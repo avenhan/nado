@@ -1,6 +1,5 @@
 package av.test.nado;
 
-import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,8 +11,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.ConfigurationFactory.ConfigurationSource;
-import org.apache.logging.log4j.core.config.Configurator;
 
 import av.nado.proxy.ProxyManager;
 import av.nado.remote.NadoRemote;
@@ -58,14 +55,11 @@ public class TestClient
     
     public static void main(String[] args) throws Exception
     {
-        ConfigurationSource source = new ConfigurationSource(new FileInputStream("conf/log4j2.xml"));
-        Configurator.initialize(null, source);
-        
+        Trace.initialize(true);
         logger.debug("hello");
+        Trace.print("from trace...");
         
         testss();
-        
-        Trace.print("from trace...");
         
         String test = "nado";
         if (args.length > 0)
@@ -95,7 +89,6 @@ public class TestClient
     
     private static void testNado(String[] args) throws Exception
     {
-        Trace.setLog(true);
         TestServer.startServer();
         
         NadoRemote.instance().loadConfig("conf/nado.xml");
