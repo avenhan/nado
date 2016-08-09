@@ -31,6 +31,17 @@ public class DubboConsumer
     
     public static void main(String[] args) throws Exception
     {
+        testDubbo();
+        while (true)
+        {
+            Thread.sleep(5000);
+        }
+    }
+    
+    public static void testDubbo() throws Exception
+    {
+        DubboServer.startServer();
+        
         context = new FileSystemXmlApplicationContext("conf/spring/service-consumer.xml");
         context.start();
         Trace.print("dubbo consumer is started....");
@@ -56,11 +67,6 @@ public class DubboConsumer
                 }
             }
         }, 100, 5000, TimeUnit.MILLISECONDS);
-        
-        while (true)
-        {
-            Thread.sleep(5000);
-        }
     }
     
     static void testSetName() throws Exception

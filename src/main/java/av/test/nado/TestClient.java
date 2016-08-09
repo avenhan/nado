@@ -14,6 +14,7 @@ import av.nado.remote.NadoRemote;
 import av.nado.util.CompareKey;
 import av.nado.util.CompareType;
 import av.nado.util.JsonUtil;
+import av.test.dubbo.DubboConsumer;
 import av.timer.QuartzManager;
 import av.util.exception.AException;
 import av.util.trace.Trace;
@@ -32,14 +33,42 @@ public class TestClient
     
     public static void main(String[] args) throws Exception
     {
+        String test = "nado";
+        if (args.length > 0)
+        {
+            test = args[0];
+        }
+        
+        if (test.equals("nado"))
+        {
+            testNado(args);
+        }
+        else
+        {
+            testDubbo(args);
+        }
+        
+        while (true)
+        {
+            Thread.sleep(5000);
+        }
+    }
+    
+    private static void testDubbo(String[] args) throws Exception
+    {
+        DubboConsumer.testDubbo();
+    }
+    
+    private static void testNado(String[] args) throws Exception
+    {
         Trace.setLog(true);
         TestServer.startServer();
         
         NadoRemote.instance().loadConfig("conf/nado.xml");
         
-        ProxyManager.instance().setTypes(TestRemoteInter.class, "av.nado.test.TestRemote", TestOutputInter.class, "av.nado.test.TestOutput");
+        ProxyManager.instance().setTypes(TestRemoteInter.class, "av.test.nado.TestRemote", TestOutputInter.class, "av.test.nado.TestOutput");
         
-        testTimer();
+        // testTimer();
         
         m_schedule = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() + 1);
         m_schedule.scheduleWithFixedDelay(new Runnable()
@@ -51,11 +80,11 @@ public class TestClient
                 {
                     if (count % 2 == 0)
                     {
-                        // test();
+                        test();
                     }
                     else
                     {
-                        // testInterface();
+                        testInterface();
                     }
                     
                     count++;
@@ -66,11 +95,6 @@ public class TestClient
                 }
             }
         }, 100, 5000, TimeUnit.MILLISECONDS);
-        
-        while (true)
-        {
-            Thread.sleep(5000);
-        }
     }
     
     private static void testTimer()
@@ -95,14 +119,14 @@ public class TestClient
             testRemote.setId(1002);
             BigDecimal decimal = new BigDecimal(120.123);
             decimal.setScale(3, BigDecimal.ROUND_HALF_UP);
-            Object ret = NadoRemote.instance().invoke("av.nado.test.TestRemote", "setName", "aven");
+            Object ret = NadoRemote.instance().invoke("av.test.nado.TestRemote", "setName", "aven");
             
             if (ret != null)
             {
                 System.out.println(ret.toString());
             }
             
-            String outputClass = "av.nado.test.TestOutput";
+            String outputClass = "av.test.nado.TestOutput";
             // test map
             Map<CompareKey, Object> mapCondition = new HashMap<CompareKey, Object>();
             mapCondition.put(new CompareKey("id", CompareType.CT_BIGGER), 200);

@@ -11,14 +11,21 @@ public class DubboServer
     
     public static void main(String[] args) throws Exception
     {
-        context = new FileSystemXmlApplicationContext("conf/spring/service-provider.xml");
-        context.start();
-        Trace.print("dubbo service is started....");
-        context.registerShutdownHook();
+        startServer();
         
         while (true)
         {
             Thread.sleep(5000);
         }
+    }
+    
+    public static void startServer() throws Exception
+    {
+        context = new FileSystemXmlApplicationContext("conf/spring/service-provider.xml");
+        context.start();
+        Trace.print("dubbo service is started....");
+        context.registerShutdownHook();
+        
+        Thread.sleep(5000);
     }
 }

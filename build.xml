@@ -10,7 +10,17 @@
         <fileSet>  
             <directory>src/main/resource</directory>  
             <outputDirectory>/conf/</outputDirectory>  
-        </fileSet>  
+        </fileSet> 
+
+        <fileSet>  
+            <directory>conf</directory>  
+            <outputDirectory>/conf/</outputDirectory>  
+        </fileSet> 
+
+        <fileSet>  
+            <directory>bin</directory>  
+            <outputDirectory>/bin/</outputDirectory>  
+        </fileSet>
     </fileSets>  
     <dependencySets>  
         <dependencySet>  

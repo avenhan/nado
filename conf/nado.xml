@@ -16,8 +16,8 @@
     <client>http</client>
 	
 	<!-- remote ip list -->
-	<remote>av.nado.test.TestRemote</remote>
-	<remote>av.nado.test.TestOutput</remote>
-	<remote>av.nado.test.TestRemoteTimer</remote>
+	<remote>av.test.nado.TestRemote</remote>
+	<remote>av.test.nado.TestOutput</remote>
+	<remote>av.test.nado.TestRemoteTimer</remote>
 	
 </aven>
