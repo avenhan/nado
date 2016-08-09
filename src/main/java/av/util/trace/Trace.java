@@ -121,9 +121,9 @@ public class Trace
         StringBuilder b = null;
         if (isTrace)
         {
-            b = new StringBuilder(trace.getClassName()).append(".");
-            b.append(trace.getMethodName()).append("().").append(trace.getLineNumber());
-            b.append(" - ");
+            b = new StringBuilder(trace.getClassName()).append(" ");
+            b.append(trace.getLineNumber()).append(" ");
+            b.append(trace.getMethodName()).append(" - ");
         }
         else
         {
@@ -160,15 +160,16 @@ public class Trace
             return ret;
         }
         
-        if (m_isLog)
-        {
-            logger.debug(ret);
-        }
-        else
-        {
-            System.out.println(ret);
-        }
+        // if (m_isLog)
+        // {
+        // logger.debug(ret);
+        // }
+        // else
+        // {
+        // System.out.println(ret);
+        // }
         
+        logger.debug(ret);
         return ret;
     }
     

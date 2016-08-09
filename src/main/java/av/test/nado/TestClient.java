@@ -23,6 +23,7 @@ import av.nado.util.JsonUtil;
 import av.test.dubbo.DubboConsumer;
 import av.timer.QuartzManager;
 import av.util.exception.AException;
+import av.util.trace.FunctionTime;
 import av.util.trace.Trace;
 
 /**
@@ -39,12 +40,32 @@ public class TestClient
     
     private static Logger                   logger     = LogManager.getLogger(TestClient.class);
     
+    public static void testss()
+    {
+        FunctionTime time = new FunctionTime();
+        time.addCurrentTime("hello");
+        try
+        {
+            Thread.sleep(100);
+        }
+        catch (InterruptedException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        time.print();
+    }
+    
     public static void main(String[] args) throws Exception
     {
         ConfigurationSource source = new ConfigurationSource(new FileInputStream("conf/log4j2.xml"));
         Configurator.initialize(null, source);
         
         logger.debug("hello");
+        
+        testss();
+        
+        Trace.print("from trace...");
         
         String test = "nado";
         if (args.length > 0)

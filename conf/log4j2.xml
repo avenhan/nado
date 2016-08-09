@@ -4,6 +4,10 @@
   		<Console name="Console">
 	      <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %class{36} %L %M - %msg%n"/>
 	    </Console>
+	    
+	    <Console name="Console2">
+          <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %msg%n"/>
+        </Console>
    		
    		<RollingFile name="FileLog" fileName="log/n.log" append="false"
    			filePattern="log/$${date:yyyy-MM}/n-%d{yyyy-MM-dd}-%i.lot4.gz">
@@ -35,10 +39,12 @@
 	    <!-- library -->
     	<Logger name="av.util.trace.Trace" level="debug" additivity="false">
     		<AppenderRef ref="FileLog2"/>
+    		<AppenderRef ref="Console2"/>
     	</Logger>
 
 	    <Logger name="av.util.trace.FunctionTime" level="debug" additivity="false">
     		<AppenderRef ref="FileLog2"/>
+    		<AppenderRef ref="Console2"/>
     	</Logger>
 
 	</Loggers>
