@@ -43,7 +43,7 @@ public class TestClient
         time.addCurrentTime("hello");
         try
         {
-            Thread.sleep(100);
+            Thread.sleep(200);
         }
         catch (InterruptedException e)
         {

@@ -14,6 +14,7 @@ import av.util.exception.AException;
 public class FunctionTime
 {
     private static Logger                    logger             = LogManager.getLogger(FunctionTime.class);
+    private static double                    KEY_MILL           = 1000000.0;
     
     private static ThreadLocal<FunctionTime> threadFunctionTime = new ThreadLocal<FunctionTime>()
                                                                 {
@@ -31,7 +32,7 @@ public class FunctionTime
     long                                     startTime          = 0;
     long                                     printTime          = 0;
     StackTraceElement                        trace              = null;
-    private final List<String>               listOUt            = new ArrayList<String>();
+    private final List<String>               listOut            = new ArrayList<String>();
     
     public static FunctionTime get()
     {
@@ -45,7 +46,7 @@ public class FunctionTime
         if (Trace.isGetTrace())
         {
             trace = ((new Exception()).getStackTrace())[1];
-            startTime = System.currentTimeMillis();
+            startTime = System.nanoTime();
         }
     }
     
@@ -56,8 +57,8 @@ public class FunctionTime
             trace = ((new Exception()).getStackTrace())[2];
         }
         
-        listOUt.clear();
-        startTime = System.currentTimeMillis();
+        listOut.clear();
+        startTime = System.nanoTime();
     }
     
     public void addCurrentTime(String key)
@@ -67,10 +68,10 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.currentTimeMillis();
+        long endTime = System.nanoTime();
         long timeWaste = endTime - startTime;
         
-        add(key, new StringBuffer("").append(timeWaste).append("ms").toString());
+        add(key, new StringBuffer("").append(timeWaste / KEY_MILL).append("ms").toString());
     }
     
     public void addCurrentTime(String format, Object... objs)
@@ -80,10 +81,10 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.currentTimeMillis();
+        long endTime = System.nanoTime();
         long timeWaste = endTime - startTime;
         
-        add(Trace.print(false, format, objs), new StringBuffer("").append(timeWaste).append("ms").toString());
+        add(Trace.print(false, format, objs), new StringBuffer("").append(timeWaste / KEY_MILL).append("ms").toString());
     }
     
     public void add(String key, Object value)
@@ -98,14 +99,21 @@ public class FunctionTime
             return;
         }
         
-        try
+        if (value instanceof String || value instanceof Double || value instanceof Integer || value instanceof Long || value instanceof Boolean)
         {
-            listOUt.add(new StringBuilder(key).append(": ").append(JsonUtil.toJson(value)).toString());
+            listOut.add(new StringBuilder(key).append(": ").append(value).toString());
         }
-        catch (AException e)
+        else
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            try
+            {
+                listOut.add(new StringBuilder(key).append(": ").append(JsonUtil.toJson(value)).toString());
+            }
+            catch (AException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
         }
     }
     
@@ -116,19 +124,19 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.currentTimeMillis();
+        long endTime = System.nanoTime();
         long timeWaste = endTime - startTime;
         printTime = endTime;
         
         StringBuilder ret = new StringBuilder(trace.getClassName()).append(" ");
         ret.append(trace.getLineNumber()).append(" ");
         ret.append(trace.getMethodName()).append(" - ");
-        ret.append("time waste: ").append(timeWaste).append("ms ");
-        if (!listOUt.isEmpty())
+        ret.append("time waste: ").append(timeWaste / KEY_MILL).append("ms ");
+        if (!listOut.isEmpty())
         {
             ret.append(" {");
             boolean isFirst = true;
-            for (String info : listOUt)
+            for (String info : listOut)
             {
                 if (isFirst)
                 {
