@@ -1,5 +1,6 @@
 package av.test.nado;
 
+import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,6 +9,11 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.ConfigurationFactory.ConfigurationSource;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import av.nado.proxy.ProxyManager;
 import av.nado.remote.NadoRemote;
@@ -31,8 +37,15 @@ public class TestClient
     private static ScheduledExecutorService m_schedule = null;
     private static int                      count      = 0;
     
+    private static Logger                   logger     = LogManager.getLogger(TestClient.class);
+    
     public static void main(String[] args) throws Exception
     {
+        ConfigurationSource source = new ConfigurationSource(new FileInputStream("conf/log4j2.xml"));
+        Configurator.initialize(null, source);
+        
+        logger.debug("hello");
+        
         String test = "nado";
         if (args.length > 0)
         {
