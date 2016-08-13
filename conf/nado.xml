@@ -13,7 +13,7 @@
     <bootstrap>http:9009</bootstrap>
     <bootstrap>tcp:9010</bootstrap>
     
-    <client>http</client>
+    <client>tcp</client>
 	
 	<!-- remote ip list -->
 	<remote>av.test.nado.TestRemote</remote>

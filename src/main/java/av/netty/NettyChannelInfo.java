@@ -255,28 +255,42 @@ public class NettyChannelInfo
             return -1;
         }
         
-        long seq = info.getWrap().getSeq();
-        Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms current time: {}", ip, seq, info.isPost(),
-                System.currentTimeMillis() - info.getWrap().getTimestamp(), System.currentTimeMillis());
-        
-        if (!channel.isConnected() || !channel.isOpen())
+        FunctionTime time = new FunctionTime();
+        try
         {
-            Trace.print("channel: {} is closed...", ip);
-            return -1;
-        }
-        
-        info.setSentTime(System.currentTimeMillis());
-        info.setSendCount(info.getSendCount() + 1);
-        
-        if (redo || isServer)
-        {
+            long seq = info.getWrap().getSeq();
+            // Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms
+            // current time: {}", ip, seq, info.isPost(),
+            // System.currentTimeMillis() - info.getWrap().getTimestamp(),
+            // System.currentTimeMillis());
+            
+            // if (!channel.isConnected() || !channel.isOpen())
+            // {
+            // Trace.print("channel: {} is closed...", ip);
+            // return -1;
+            // }
+            
+            time.addCurrentTime("check connected");
+            
+            info.setSentTime(System.nanoTime());
+            info.setSendCount(info.getSendCount() + 1);
+            
+            if (redo || isServer)
+            {
+                channel.write(info.getJson());
+                time.addCurrentTime("server write");
+                return seq;
+            }
+            
+            mapPost.put(seq, info);
             channel.write(info.getJson());
+            time.addCurrentTime("client write");
             return seq;
         }
-        
-        mapPost.put(seq, info);
-        channel.write(info.getJson());
-        return seq;
+        finally
+        {
+            time.print();
+        }
     }
     
     private String readJson(String in) throws AException
@@ -284,8 +298,8 @@ public class NettyChannelInfo
         // logger.debug("####### ip: {} in: {}, current time: {}", ip, in,
         // System.currentTimeMillis());
         
-        FunctionTime functionTime = new FunctionTime();
-        functionTime.add("ip", ip.toString());
+        // FunctionTime functionTime = new FunctionTime();
+        // functionTime.add("ip", ip.toString());
         try
         {
             String buffer = in;
@@ -298,7 +312,7 @@ public class NettyChannelInfo
                 
                 Aggregate<Integer, String> aggregate = NettySignature.getValue(buffer);
                 String json = aggregate.getSecond();
-                functionTime.addCurrentTime("get json");
+                // functionTime.addCurrentTime("get json");
                 if (aggregate.getFirst() > -1 && !Check.IfOneEmpty(json))
                 {
                     // can explain to json
@@ -307,7 +321,7 @@ public class NettyChannelInfo
                     // Trace.print("ip: {} get one json: [{}] left: [{}] current
                     // time: {}", ip, json, buffer, System.currentTimeMillis());
                     onReceiveMessage(json);
-                    functionTime.addCurrentTime("recv json");
+                    // functionTime.addCurrentTime("recv json");
                     continue;
                 }
                 
@@ -334,7 +348,7 @@ public class NettyChannelInfo
         }
         finally
         {
-            functionTime.print();
+            // functionTime.print();
         }
     }
     
@@ -355,18 +369,21 @@ public class NettyChannelInfo
             {
                 return;
             }
-            time.addCurrentTime("seq[{}] from json", wrap.getSeq());
-            Trace.print("seq: {} receive time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+            time.add("seq", wrap.getSeq());
+            time.addCurrentTime("json");
+            // Trace.print("ip: {} seq: {} receive time: {}ms", ip,
+            // wrap.getSeq(), Trace.getWaste(wrap.getTimestamp()));
+            // time.addCurrentTime("print");
             
             if (isServer)
             {
-                time.addCurrentTime("is valid seq0");
+                time.addCurrentTime("valid seq0");
                 if (!isValidServerSequence(wrap))
                 {
                     return;
                 }
                 
-                time.addCurrentTime("is valid seq1");
+                time.addCurrentTime("valid seq1");
                 netty.onReceiveMessage(this, wrap, null);
                 time.addCurrentTime("netty");
                 return;
@@ -394,10 +411,10 @@ public class NettyChannelInfo
     private NettySendInfo onReceiveAck(NettyWrap wrap)
     {
         FunctionTime functionTime = new FunctionTime();
+        long seq = wrap.getSeq();
+        functionTime.add("seq", seq);
         try
         {
-            long seq = wrap.getSeq();
-            functionTime.addCurrentTime("seq[{}] time[{}]ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
             
             NettySendInfo info = mapPost.remove(seq);
             functionTime.addCurrentTime("remove seq");
@@ -462,6 +479,11 @@ public class NettyChannelInfo
     
     private boolean isValidServerSequence(NettyWrap wrap)
     {
+        if (true)
+        {
+            return true;
+        }
+        
         FunctionTime functionTime = new FunctionTime();
         try
         {

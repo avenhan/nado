@@ -9,8 +9,10 @@ import org.apache.logging.log4j.core.config.Configurator;
 
 public class Trace
 {
-    private static Logger  logger       = LogManager.getLogger(Trace.class);
-    private static boolean m_isGetTrace = true;
+    private static Logger                  logger       = LogManager.getLogger(Trace.class);
+    private static boolean                 m_isGetTrace = true;
+    private static java.text.DecimalFormat df           = new java.text.DecimalFormat("#.000");
+    private static double                  KEY_MILL     = 1000000.0;
     
     static
     {
@@ -90,6 +92,27 @@ public class Trace
         }
         
         return "";
+    }
+    
+    public static long getCurrentTime()
+    {
+        return System.nanoTime();
+    }
+    
+    public static String getWaste(long lastTime)
+    {
+        long current = getCurrentTime();
+        return getAsMs(current - lastTime);
+    }
+    
+    public static String getAsMs(long wasteTime)
+    {
+        if (wasteTime < KEY_MILL)
+        {
+            StringBuilder b = new StringBuilder("0").append(df.format(wasteTime / KEY_MILL));
+            return b.toString();
+        }
+        return df.format(wasteTime / KEY_MILL);
     }
     
     public static String print(String text)

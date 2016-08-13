@@ -1,15 +1,13 @@
 package av.nado.network.netty;
 
 import av.netty.NettyController;
-import av.util.trace.Trace;
 
 public class NadoTestController implements NettyController<String>
 {
     
     public Object receive(String request)
     {
-        Trace.print("nado test controller receive: {}", request);
-        return getString(10000);
+        return getString(0);
     }
     
     private static String getString(long times)

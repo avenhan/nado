@@ -194,10 +194,8 @@ public class RedisRegister implements Register
     @Timer(time = 3000, exclusive = true)
     protected void onTimerRegister() throws AException
     {
-        Trace.print("on timer ...");
         for (Map.Entry<String, String> entry : m_mapRegister.entrySet())
         {
-            Trace.print("register key: {} value: {}", entry.getKey(), entry.getValue());
             registerPoxy(entry.getKey(), entry.getValue());
         }
     }

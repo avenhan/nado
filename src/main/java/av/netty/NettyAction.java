@@ -72,16 +72,14 @@ public class NettyAction<T> implements Runnable
         {
             retObject = controller.receive(objParam);
         }
-        catch (Exception e1)
+        catch (Exception e)
         {
-            e1.printStackTrace();
-            retObject = e1;
+            retObject = e;
         }
         
         try
         {
             wrap.setMsg(NadoParam.toExplain(retObject));
-            
             if (info.isServer())
             {
                 NettyManager.instance().post(info, wrap);
@@ -94,7 +92,6 @@ public class NettyAction<T> implements Runnable
         }
         
         Trace.print("seq: {} action finished at: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
-        
-        info.removeSafeSequence();
+        // info.removeSafeSequence();
     }
 }

@@ -86,7 +86,7 @@ public class NettyManager
     
     public void startServer(int port, int maxThreadCount)
     {
-        int coreCount = Runtime.getRuntime().availableProcessors() + 1;
+        int coreCount = Runtime.getRuntime().availableProcessors() * 2;
         if (maxThreadCount < 1)
         {
             m_maxThreadCount = MAX_THREAD_COUNT;
@@ -104,7 +104,6 @@ public class NettyManager
                 new ArrayBlockingQueue<Runnable>(MAX_CACHED_SIZE), new ThreadPoolExecutor.CallerRunsPolicy());
         
         ChannelFactory factory = new NioServerSocketChannelFactory(Executors.newCachedThreadPool(), Executors.newCachedThreadPool(), coreCount);
-        
         ServerBootstrap bootstrap = new ServerBootstrap(factory);
         
         bootstrap.setPipelineFactory(new ChannelPipelineFactory()
@@ -194,7 +193,7 @@ public class NettyManager
         wrap.setSeq(Sequence.getSequence());
         wrap.setMsg(NadoParam.toExplain(msg));
         wrap.setCommand(Command.NC_USER);
-        wrap.setTimestamp(System.currentTimeMillis());
+        wrap.setTimestamp(Trace.getCurrentTime());
         
         return post(info, wrap);
     }
@@ -206,16 +205,28 @@ public class NettyManager
             throw new AException(AException.ERR_SERVER, "channel info or wrap is null");
         }
         
-        String json = JsonUtil.toJson(wrap);
+        FunctionTime time = new FunctionTime();
         
-        NettySendInfo sent = new NettySendInfo();
-        sent.setCreateTime(System.currentTimeMillis());
-        sent.setJson(NettySignature.signature(json));
-        sent.setSendCount(0);
-        sent.setSentTime(0);
-        sent.setWrap(wrap);
-        
-        return info.postMessage(sent);
+        try
+        {
+            time.add("seq", wrap.getSeq());
+            String json = JsonUtil.toJson(wrap);
+            time.addCurrentTime("json");
+            
+            NettySendInfo sent = new NettySendInfo();
+            sent.setCreateTime(System.currentTimeMillis());
+            sent.setJson(NettySignature.signature(json));
+            sent.setSendCount(0);
+            sent.setSentTime(0);
+            sent.setWrap(wrap);
+            time.addCurrentTime("sign");
+            
+            return info.postMessage(sent);
+        }
+        finally
+        {
+            time.print();
+        }
     }
     
     public Object send(RemoteIp ip, Object msg) throws AException
@@ -235,7 +246,7 @@ public class NettyManager
         wrap.setSeq(Sequence.getSequence());
         wrap.setMsg(NadoParam.toExplain(msg));
         wrap.setCommand(Command.NC_USER);
-        wrap.setTimestamp(System.currentTimeMillis());
+        wrap.setTimestamp(Trace.getCurrentTime());
         
         NettyWrap ret = send(info, wrap);
         if (ret == null)
@@ -263,7 +274,7 @@ public class NettyManager
             time.addCurrentTime("json");
             
             NettySendInfo sent = new NettySendInfo();
-            sent.setCreateTime(System.currentTimeMillis());
+            sent.setCreateTime(Trace.getCurrentTime());
             sent.setJson(NettySignature.signature(json));
             sent.setSendCount(0);
             sent.setSentTime(0);
@@ -275,8 +286,7 @@ public class NettyManager
                 return null;
             }
             
-            Trace.print(".........send seq: {} receive seq: {} time waste: {}ms", wrap.getSeq(), ret.getSeq(),
-                    (System.currentTimeMillis() - sent.getCreateTime()));
+            Trace.print(".........send seq: {} receive seq: {} time waste: {}ms", wrap.getSeq(), ret.getSeq(), Trace.getWaste(sent.getCreateTime()));
             return ret;
         }
         finally
@@ -356,12 +366,13 @@ public class NettyManager
     protected void onReceiveMessage(NettyChannelInfo info, NettyWrap wrap, NettySendInfo sendInfo)
     {
         FunctionTime functionTime = new FunctionTime();
+        functionTime.add("seq", wrap.getSeq());
         try
         {
             Object objParam = NadoParam.fromExplain(wrap.getMsg());
-            functionTime.addCurrentTime("seq_{} param", wrap.getSeq());
+            functionTime.addCurrentTime("param");
             NettyController<?> controller = m_mapController.get(objParam.getClass());
-            functionTime.addCurrentTime("seq_{} controller", wrap.getSeq());
+            functionTime.addCurrentTime("controller");
             
             if (controller == null)
             {
@@ -375,21 +386,24 @@ public class NettyManager
                         objParam.getClass().getName(), wrap.getSeq(), isPost);
             }
             
-            NettyAction action = new NettyAction();
-            action.setInfo(info);
-            action.setSendInfo(sendInfo);
-            action.setWrap(wrap);
-            action.setController(controller);
-            action.setObjParam(objParam);
+            // NettyAction action = new NettyAction();
+            // action.setInfo(info);
+            // action.setSendInfo(sendInfo);
+            // action.setWrap(wrap);
+            // action.setController(controller);
+            // action.setObjParam(objParam);
+            //
+            // functionTime.addCurrentTime("action");
+            // Trace.print("seq: {} receive and will do action at time: {}ms",
+            // wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
+            // m_threadPool.execute(action);
+            // action.run();
             
-            functionTime.addCurrentTime("seq_{} action", wrap.getSeq());
-            Trace.print("seq: {} receive and will do action at time: {}ms", wrap.getSeq(), System.currentTimeMillis() - wrap.getTimestamp());
-            m_threadPool.execute(action);
+            doAction(controller, objParam.getClass(), info, wrap);
+            functionTime.addCurrentTime("do action");
         }
         catch (Exception e)
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
             sendErrorToClient(info, wrap, e);
         }
         finally
@@ -403,6 +417,39 @@ public class NettyManager
             // {}ms", sendInfo.getWrap().getSeq(), wrap.getSeq(),
             // System.currentTimeMillis() - sendInfo.getCreateTime());
         }
+    }
+    
+    private <T> void doAction(NettyController<?> controller, Object objParam, NettyChannelInfo info, NettyWrap wrap)
+    {
+        FunctionTime time = new FunctionTime();
+        Object retObject = null;
+        try
+        {
+            retObject = controller.receive(null);
+            time.addCurrentTime("invoke");
+        }
+        catch (Exception e)
+        {
+            retObject = e;
+        }
+        
+        try
+        {
+            wrap.setMsg(NadoParam.toExplain(retObject));
+            time.addCurrentTime("to msg");
+            if (info.isServer())
+            {
+                post(info, wrap);
+                time.addCurrentTime("post msg");
+            }
+        }
+        catch (AException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
+        time.print();
     }
     
     private void sendErrorToClient(NettyChannelInfo info, NettyWrap wrap, Exception e)

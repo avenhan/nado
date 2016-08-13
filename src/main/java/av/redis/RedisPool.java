@@ -12,7 +12,6 @@ import org.apache.logging.log4j.Logger;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Check;
 import av.util.exception.AException;
-import av.util.trace.FunctionTime;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.exceptions.JedisConnectionException;
@@ -73,7 +72,6 @@ public class RedisPool
             throw new AException(AException.ERR_SERVER, "invalid parameters");
         }
         
-        FunctionTime functionTime = new FunctionTime();
         String jedisPattern = key(type, pattern);
         Set<String> result = Collections.emptySet();
         
@@ -81,7 +79,6 @@ public class RedisPool
         try
         {
             jedis = pool.getResource();
-            functionTime.addCurrentTime("get jedis");
             result = jedis.keys(jedisPattern);
             return result;
         }
@@ -97,20 +94,17 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            functionTime.print();
         }
     }
     
     public boolean exists(String type, String key) throws AException, JedisConnectionException
     {
-        FunctionTime functionTime = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         boolean result = false;
         try
         {
             jedis = pool.getResource();
-            functionTime.addCurrentTime("get jedis");
             
             result = jedis.exists(jedisKey);
             return result;
@@ -127,19 +121,16 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            functionTime.print();
         }
     }
     
     public void delete(String type, String key) throws AException, JedisConnectionException
     {
-        FunctionTime functionTime = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         try
         {
             jedis = pool.getResource();
-            functionTime.addCurrentTime("get jedis");
             
             jedis.del(jedisKey);
         }
@@ -155,20 +146,17 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            functionTime.print();
         }
     }
     
     public String get(String type, String key) throws AException, JedisConnectionException
     {
-        FunctionTime functionTime = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         
         try
         {
             jedis = pool.getResource();
-            functionTime.addCurrentTime("get jedis");
             
             return jedis.get(jedisKey);
         }
@@ -184,7 +172,6 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            functionTime.print();
         }
     }
     
@@ -196,15 +183,12 @@ public class RedisPool
             valueTemp = "";
         }
         
-        FunctionTime functionTime = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         
         try
         {
             jedis = pool.getResource();
-            functionTime.addCurrentTime("get jedis");
-            
             if (expireTime <= 0)
             {
                 value = jedis.set(jedisKey, value);
@@ -238,7 +222,6 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            functionTime.print();
         }
     }
     
@@ -250,7 +233,6 @@ public class RedisPool
             return false;
         }
         
-        FunctionTime time = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         
@@ -265,10 +247,6 @@ public class RedisPool
                 if (ret == 1)
                 {
                     m_mapLockKeys.put(jedisKey, currentTime);
-                    logger.debug("lock key: {} locked time: {}", jedisKey, currentTime);
-                    // System.out.println("lock key: " + jedisKey + " locked
-                    // tiem: " + currentTime);
-                    
                     return true;
                 }
                 
@@ -300,9 +278,6 @@ public class RedisPool
                 }
                 
                 m_mapLockKeys.put(jedisKey, currentTime);
-                logger.debug("lock key: {} locked time: {}", jedisKey, currentTime);
-                // System.out.println("lock key: " + jedisKey + " locked tiem: "
-                // + currentTime);
                 jedis.persist(jedisKey.getBytes());
                 
                 return true;
@@ -321,7 +296,6 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            time.print();
         }
     }
     
@@ -332,7 +306,6 @@ public class RedisPool
             return;
         }
         
-        FunctionTime time = new FunctionTime();
         Jedis jedis = null;
         String jedisKey = key(type, key);
         
@@ -364,24 +337,12 @@ public class RedisPool
             long diffTime = currentTime - lastTime;
             if (diffTime < 0 || diffTime > KEY_TIME_LOCK_TIME_OUT - 200)
             {
-                //
-                logger.debug("lock key: {} set time out, last locked time: {}, current time: {}, diff time: {}", jedisKey, lastTime, currentTime,
-                        diffTime);
-                // System.out.println("lock key: " + jedisKey + " set time out
-                // last locked time: " + lastTime + ", current time: " +
-                // currentTime
-                // + ", diff time: " + diffTime);
                 m_mapLockKeys.remove(jedisKey);
                 return;
             }
             
             jedis.set(jedisKey, "0");
             jedis.expire(jedisKey.getBytes(), (int) KEY_TIME_LOCK_TIME_OUT / 1000);
-            logger.debug("lock key: {} set time out, last locked time: {}, current time: {}, diff time: {}", jedisKey, lastTime, currentTime,
-                    diffTime);
-            // System.out.println("lock key: " + jedisKey + " set time out last
-            // locked time: " + lastTime + ", current time: " + currentTime
-            // + ", diff time: " + diffTime);
             m_mapLockKeys.remove(jedisKey);
         }
         catch (JedisConnectionException e)
@@ -396,7 +357,6 @@ public class RedisPool
         finally
         {
             close(pool, jedis);
-            time.print();
         }
     }
     

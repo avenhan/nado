@@ -14,7 +14,6 @@ import av.util.exception.AException;
 public class FunctionTime
 {
     private static Logger                    logger             = LogManager.getLogger(FunctionTime.class);
-    private static double                    KEY_MILL           = 1000000.0;
     
     private static ThreadLocal<FunctionTime> threadFunctionTime = new ThreadLocal<FunctionTime>()
                                                                 {
@@ -34,6 +33,8 @@ public class FunctionTime
     StackTraceElement                        trace              = null;
     private final List<String>               listOut            = new ArrayList<String>();
     
+    private static java.text.DecimalFormat   df                 = new java.text.DecimalFormat("#.000");
+    
     public static FunctionTime get()
     {
         FunctionTime ftime = threadFunctionTime.get();
@@ -46,7 +47,7 @@ public class FunctionTime
         if (Trace.isGetTrace())
         {
             trace = ((new Exception()).getStackTrace())[1];
-            startTime = System.nanoTime();
+            startTime = Trace.getCurrentTime();
         }
     }
     
@@ -58,7 +59,7 @@ public class FunctionTime
         }
         
         listOut.clear();
-        startTime = System.nanoTime();
+        startTime = Trace.getCurrentTime();
     }
     
     public void addCurrentTime(String key)
@@ -68,10 +69,10 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.nanoTime();
+        long endTime = Trace.getCurrentTime();
         long timeWaste = endTime - startTime;
         
-        add(key, new StringBuffer("").append(timeWaste / KEY_MILL).append("ms").toString());
+        add(key, new StringBuffer("").append(Trace.getAsMs(timeWaste)).append("ms").toString());
     }
     
     public void addCurrentTime(String format, Object... objs)
@@ -81,10 +82,10 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.nanoTime();
+        long endTime = Trace.getCurrentTime();
         long timeWaste = endTime - startTime;
         
-        add(Trace.print(false, format, objs), new StringBuffer("").append(timeWaste / KEY_MILL).append("ms").toString());
+        add(Trace.print(false, format, objs), new StringBuffer("").append(Trace.getAsMs(timeWaste)).append("ms").toString());
     }
     
     public void add(String key, Object value)
@@ -124,14 +125,14 @@ public class FunctionTime
             return;
         }
         
-        long endTime = System.nanoTime();
+        long endTime = Trace.getCurrentTime();
         long timeWaste = endTime - startTime;
         printTime = endTime;
         
         StringBuilder ret = new StringBuilder(trace.getClassName()).append(" ");
         ret.append(trace.getLineNumber()).append(" ");
         ret.append(trace.getMethodName()).append(" - ");
-        ret.append("time waste: ").append(timeWaste / KEY_MILL).append("ms ");
+        ret.append("time waste: ").append(Trace.getAsMs(timeWaste)).append("ms ");
         if (!listOut.isEmpty())
         {
             ret.append(" {");
@@ -149,6 +150,9 @@ public class FunctionTime
                 }
             }
             ret.append("}");
+            
+            endTime = Trace.getCurrentTime() - endTime;
+            ret.append(" + ").append(Trace.getAsMs(endTime)).append("ms");
         }
         
         logger.debug(ret.toString());

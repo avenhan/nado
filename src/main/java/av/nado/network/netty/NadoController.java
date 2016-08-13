@@ -15,6 +15,11 @@ public class NadoController implements NettyController<NadoWrap>
     
     public Object receive(NadoWrap rqst) throws Exception
     {
+        if (true)
+        {
+            return "null";
+        }
+        
         FunctionTime functionTime = new FunctionTime();
         
         try

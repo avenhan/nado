@@ -37,7 +37,7 @@ public class NadoParam
     
     public static String toExplain(Object param) throws AException
     {
-        FunctionTime fuTime = new FunctionTime();
+        // FunctionTime fuTime = new FunctionTime();
         try
         {
             StringBuilder b = new StringBuilder();
@@ -45,35 +45,35 @@ public class NadoParam
             {
                 b.append("null:null");
             }
-            else if (param instanceof Throwable)
-            {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
-                b.append(Throwable.class.getName()).append(":").append(hessianEncode(param));
-            }
             else if (param instanceof String)
             {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(String.class.getName()).append(":{").append(param).append("}");
             }
             else if (param instanceof Integer || param instanceof Long || param instanceof Double || param instanceof Boolean
                     || param instanceof BigDecimal)
             {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(param.getClass().getName()).append(":").append(param.toString());
             }
             else if (param instanceof Collection<?>)
             {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createCollectionExplain(param);
             }
             else if (param instanceof Map<?, ?>)
             {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createMapExplain(param);
+            }
+            else if (param instanceof Throwable)
+            {
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                b.append(Throwable.class.getName()).append(":").append(hessianEncode(param));
             }
             else
             {
-                fuTime.addCurrentTime("type.{}", param.getClass().getName());
+                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(param.getClass().getName()).append(":{").append(JsonUtil.toJson(param)).append("}");
             }
             
@@ -92,7 +92,7 @@ public class NadoParam
             throw new AException(AException.ERR_SERVER, "invalid explain param");
         }
         
-        FunctionTime functionTime = new FunctionTime();
+        // FunctionTime functionTime = new FunctionTime();
         
         int index = explain.indexOf(':');
         if (index == -1)
@@ -111,7 +111,7 @@ public class NadoParam
             }
             
             Class<?> type = Class.forName(typeName);
-            functionTime.add("type", typeName);
+            // functionTime.add("type", typeName);
             
             if (value.charAt(0) == '{')
             {
