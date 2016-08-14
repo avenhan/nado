@@ -1,4 +1,4 @@
-package av.nado.remote;
+package av.nado.param;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -19,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 import com.caucho.hessian.io.HessianInput;
 import com.caucho.hessian.io.HessianOutput;
 
+import av.nado.remote.NadoResponse;
 import av.nado.util.Check;
 import av.nado.util.CompareKey;
 import av.nado.util.CompareType;

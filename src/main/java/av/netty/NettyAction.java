@@ -1,6 +1,6 @@
 package av.netty;
 
-import av.nado.remote.NadoParam;
+import av.nado.param.NadoParam;
 import av.util.exception.AException;
 import av.util.trace.Trace;
 

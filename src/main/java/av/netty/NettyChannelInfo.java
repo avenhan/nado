@@ -141,16 +141,16 @@ public class NettyChannelInfo
     
     protected void analysisJson() throws AException
     {
-        if (this.recvs.isEmpty() && Check.IfOneEmpty(readBuf))
-        {
-            return;
-        }
-        
         FunctionTime functionTime = new FunctionTime(false);
         functionTime.add("ip", ip.toString());
         
         try
         {
+            if (this.recvs.isEmpty() && Check.IfOneEmpty(readBuf))
+            {
+                return;
+            }
+            
             while (true)
             {
                 if (Check.IfOneEmpty(readBuf))
@@ -366,9 +366,7 @@ public class NettyChannelInfo
             }
             time.add("seq", wrap.getSeq());
             time.addCurrentTime("json");
-            // Trace.print("ip: {} seq: {} receive time: {}ms", ip,
-            // wrap.getSeq(), Trace.getWaste(wrap.getTimestamp()));
-            // time.addCurrentTime("print");
+            time.add("recv time", Trace.getWaste(wrap.getTimestamp()));
             
             if (isServer)
             {
@@ -472,7 +470,7 @@ public class NettyChannelInfo
             return true;
         }
         
-        FunctionTime functionTime = new FunctionTime();
+        FunctionTime time = new FunctionTime(isServer);
         try
         {
             long recvSeq = wrap.getSeq();
@@ -493,7 +491,7 @@ public class NettyChannelInfo
         }
         finally
         {
-            functionTime.print();
+            time.print();
         }
     }
 }

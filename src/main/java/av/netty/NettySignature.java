@@ -3,7 +3,7 @@ package av.netty;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import av.nado.remote.NadoParam;
+import av.nado.param.NadoParam;
 import av.nado.remote.NadoResponse;
 import av.nado.util.Aggregate;
 import av.nado.util.JsonUtil;

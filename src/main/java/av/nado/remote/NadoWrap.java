@@ -3,6 +3,7 @@ package av.nado.remote;
 import java.util.ArrayList;
 import java.util.List;
 
+import av.nado.param.NadoParam;
 import av.util.exception.AException;
 
 public class NadoWrap

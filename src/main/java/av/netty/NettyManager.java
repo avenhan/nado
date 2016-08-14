@@ -25,7 +25,7 @@ import org.jboss.netty.handler.codec.string.StringDecoder;
 import org.jboss.netty.handler.codec.string.StringEncoder;
 
 import av.nado.network.netty.NadoTestController;
-import av.nado.remote.NadoParam;
+import av.nado.param.NadoParam;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Check;
 import av.nado.util.JsonUtil;
@@ -366,7 +366,7 @@ public class NettyManager
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void onReceiveMessage(NettyChannelInfo info, NettyWrap wrap, NettySendInfo sendInfo)
     {
-        FunctionTime functionTime = new FunctionTime(false);
+        FunctionTime functionTime = new FunctionTime(info.isServer());
         functionTime.add("seq", wrap.getSeq());
         try
         {
@@ -400,7 +400,7 @@ public class NettyManager
             // m_threadPool.execute(action);
             // action.run();
             
-            doAction(controller, objParam.getClass(), info, wrap);
+            doAction(controller, objParam, info, wrap);
             functionTime.addCurrentTime("do action");
         }
         catch (Exception e)
@@ -413,7 +413,8 @@ public class NettyManager
         }
     }
     
-    private <T> void doAction(NettyController<?> controller, Object objParam, NettyChannelInfo info, NettyWrap wrap)
+    @SuppressWarnings("unchecked")
+    private <T> void doAction(NettyController<T> controller, Object objParam, NettyChannelInfo info, NettyWrap wrap)
     {
         FunctionTime time = new FunctionTime(false);
         time.add("ip", info.getIp().toString());
@@ -422,7 +423,7 @@ public class NettyManager
         Object retObject = null;
         try
         {
-            retObject = controller.receive(null);
+            retObject = controller.receive((T) objParam);
             time.addCurrentTime("invoke");
         }
         catch (Exception e)

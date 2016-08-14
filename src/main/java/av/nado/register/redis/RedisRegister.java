@@ -17,7 +17,6 @@ import av.redis.Redis;
 import av.timer.QuartzManager;
 import av.timer.Timer;
 import av.util.exception.AException;
-import av.util.trace.Trace;
 
 public class RedisRegister implements Register
 {
@@ -203,8 +202,6 @@ public class RedisRegister implements Register
     @Timer(time = 5000, exclusive = true)
     protected void onTimerLoadProxy() throws AException
     {
-        Trace.print("on timer ...");
-        
         if (Check.IfOneEmpty(lastClientType))
         {
             return;

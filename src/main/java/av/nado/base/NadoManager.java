@@ -125,7 +125,7 @@ public class NadoManager
     
     private Object invokeBase(String type, String methodName, Object... params) throws Throwable
     {
-        FunctionTime functionTime = new FunctionTime();
+        FunctionTime functionTime = new FunctionTime(false);
         try
         {
             NadoInfo<?> info = m_mapInfo.get(type);

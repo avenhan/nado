@@ -5,7 +5,7 @@ import java.util.List;
 import org.restexpress.Response;
 
 import av.nado.base.NadoManager;
-import av.nado.remote.NadoParam;
+import av.nado.param.NadoParam;
 import av.nado.remote.NadoResponse;
 import av.nado.remote.NadoWrap;
 import av.nado.util.Check;

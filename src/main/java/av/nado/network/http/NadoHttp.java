@@ -7,7 +7,7 @@ import org.apache.http.HttpStatus;
 
 import av.nado.network.BaseNetwork;
 import av.nado.network.NetworkStatus;
-import av.nado.remote.NadoParam;
+import av.nado.param.NadoParam;
 import av.nado.remote.NadoResponse;
 import av.nado.remote.RemoteIp;
 import av.nado.util.Aggregate;
