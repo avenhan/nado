@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 
+import av.nado.util.Check;
+import av.util.exception.AException;
+
 public class NadoParamType
 {
     public static final int PARAM_TYPE_OBJECT  = 0;
@@ -17,12 +20,14 @@ public class NadoParamType
     // BigDecimal
     public static final int PARAM_TYPE_DECIMAL = PARAM_TYPE_NULL + 6;
     
+    public static final int PARAM_TYPE_THROW   = PARAM_TYPE_NULL + 7;
+    
     // complex type
     public static final int PARAM_TYPE_LIST    = 100;
     public static final int PARAM_TYPE_SET     = PARAM_TYPE_LIST + 1;
     public static final int PARAM_TYPE_MAP     = PARAM_TYPE_LIST + 2;
     
-    public int getType(Object obj)
+    public static int getType(Object obj)
     {
         if (obj == null)
         {
@@ -61,6 +66,24 @@ public class NadoParamType
             return PARAM_TYPE_MAP;
         }
         else
+        {
+            return PARAM_TYPE_OBJECT;
+        }
+    }
+    
+    public static int getExplainType(String type) throws AException
+    {
+        if (Check.IfOneEmpty(type))
+        {
+            throw new AException(AException.ERR_SERVER, "invalid type: {}", type);
+        }
+        
+        try
+        {
+            int intType = Integer.parseInt(type);
+            return intType;
+        }
+        catch (Exception e)
         {
             return PARAM_TYPE_OBJECT;
         }

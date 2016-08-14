@@ -6,9 +6,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,37 +47,31 @@ public class NadoParam
             StringBuilder b = new StringBuilder();
             if (param == null)
             {
-                b.append("null:null");
+                b.append(NadoParamType.PARAM_TYPE_NULL).append(":");
             }
             else if (param instanceof String)
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
-                b.append(String.class.getName()).append(":{").append(param).append("}");
+                b.append(NadoParamType.PARAM_TYPE_STRING).append(":{").append(param).append("}");
             }
             else if (param instanceof Integer || param instanceof Long || param instanceof Double || param instanceof Boolean
                     || param instanceof BigDecimal)
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
-                b.append(param.getClass().getName()).append(":").append(param.toString());
+                b.append(NadoParamType.getType(param)).append(":").append(param.toString());
             }
             else if (param instanceof Collection<?>)
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createCollectionExplain(param);
             }
             else if (param instanceof Map<?, ?>)
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 return createMapExplain(param);
             }
             else if (param instanceof Throwable)
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
-                b.append(Throwable.class.getName()).append(":").append(hessianEncode(param));
+                b.append(NadoParamType.PARAM_TYPE_THROW).append(":").append(hessianEncode(param));
             }
             else
             {
-                // fuTime.addCurrentTime("type.{}", param.getClass().getName());
                 b.append(param.getClass().getName()).append(":{").append(JsonUtil.toJson(param)).append("}");
             }
             
@@ -82,7 +79,6 @@ public class NadoParam
         }
         finally
         {
-            // fuTime.print();
         }
     }
     
@@ -103,16 +99,14 @@ public class NadoParam
         
         String typeName = explain.substring(0, index);
         String value = explain.substring(index + 1);
+        int intType = NadoParamType.getExplainType(typeName);
         
         try
         {
-            if (value.equals("null"))
+            if (intType == NadoParamType.PARAM_TYPE_NULL)
             {
                 return null;
             }
-            
-            Class<?> type = Class.forName(typeName);
-            // functionTime.add("type", typeName);
             
             if (value.charAt(0) == '{')
             {
@@ -125,61 +119,62 @@ public class NadoParam
                     throw new AException(AException.ERR_SERVER, "invalid explain param");
                 }
                 
-                if (type.equals(String.class))
+                if (intType == NadoParamType.PARAM_TYPE_STRING)
                 {
                     return value;
                 }
                 
-                if (type.equals(Collection.class))
+                if (intType == NadoParamType.PARAM_TYPE_LIST)
                 {
                     return explainCollection(value);
                 }
                 
-                if (type.equals(Map.class))
+                if (intType == NadoParamType.PARAM_TYPE_MAP)
                 {
                     return explainMap(value);
                 }
                 
+                Class<?> type = Class.forName(typeName);
                 Object obj = JsonUtil.toObject(type, value);
                 return obj;
             }
             
-            if (type.equals(Integer.class))
+            if (intType == NadoParamType.PARAM_TYPE_INT)
             {
                 return Integer.parseInt(value);
             }
             
-            if (type.equals(Long.class))
+            if (intType == NadoParamType.PARAM_TYPE_LONG)
             {
                 return Long.parseLong(value);
             }
             
-            if (type.equals(Boolean.class))
+            if (intType == NadoParamType.PARAM_TYPE_BOOLEAN)
             {
                 return Boolean.parseBoolean(value);
             }
             
-            if (type.equals(Double.class))
+            if (intType == NadoParamType.PARAM_TYPE_DOUBLE)
             {
                 return Double.parseDouble(value);
             }
             
-            if (type.equals(BigDecimal.class))
+            if (intType == NadoParamType.PARAM_TYPE_DECIMAL)
             {
                 return new BigDecimal(value);
             }
             
-            if (type.equals(Collection.class))
+            if (intType == NadoParamType.PARAM_TYPE_LIST)
             {
                 return hessionDecode(value);
             }
             
-            if (type.equals(Map.class))
+            if (intType == NadoParamType.PARAM_TYPE_MAP)
             {
                 return hessionDecode(value);
             }
             
-            if (type.equals(Throwable.class))
+            if (intType == NadoParamType.PARAM_TYPE_THROW)
             {
                 return hessionDecode(value);
             }
@@ -431,11 +426,11 @@ public class NadoParam
         
         if (obj == null)
         {
-            b.append(Collection.class.getName()).append(":").append(hessianEncode(param));
+            b.append(NadoParamType.PARAM_TYPE_LIST).append(":").append(hessianEncode(param));
         }
         else
         {
-            b.append(Collection.class.getName()).append(":{");
+            b.append(NadoParamType.PARAM_TYPE_LIST).append(":{");
             b.append(param.getClass().getName()).append(":");
             b.append(obj.getClass().getName()).append(":").append(JsonUtil.toJson(param));
             b.append("}");
@@ -550,11 +545,11 @@ public class NadoParam
         
         if (objKey == null || objValue == null)
         {
-            b.append(Map.class.getName()).append(":").append(hessianEncode(param));
+            b.append(NadoParamType.PARAM_TYPE_MAP).append(":").append(hessianEncode(param));
         }
         else
         {
-            b.append(Map.class.getName()).append(":{");
+            b.append(NadoParamType.PARAM_TYPE_MAP).append(":{");
             b.append(param.getClass().getName()).append(":");
             b.append(objKey.getClass().getName()).append(":");
             b.append(objValue.getClass().getName()).append(":").append(JsonUtil.toJson(param));
@@ -623,7 +618,7 @@ public class NadoParam
         }
     }
     
-    public static void main(String[] args) throws Exception
+    public static void main2(String[] args) throws Exception
     {
         Map<CompareKey, Object> mapCondition2 = new HashMap<CompareKey, Object>();
         mapCondition2.put(new CompareKey("id", CompareType.CT_BIGGER), 200);
@@ -791,4 +786,98 @@ public class NadoParam
         Trace.print("fuck on...");
     }
     
+    public static void main(String[] args) throws Exception
+    {
+        Trace.print("will do test ...");
+        int count = 1000000;
+        // doTest(count, NadoParamType.PARAM_TYPE_NULL);
+        // doTest(count, NadoParamType.PARAM_TYPE_INT);
+        // doTest(count, NadoParamType.PARAM_TYPE_LONG);
+        // doTest(count, NadoParamType.PARAM_TYPE_DOUBLE);
+        // doTest(count, NadoParamType.PARAM_TYPE_BOOLEAN);
+        // doTest(count, NadoParamType.PARAM_TYPE_STRING);
+        // doTest(count, NadoParamType.PARAM_TYPE_LIST);
+        // doTest(count, NadoParamType.PARAM_TYPE_SET);
+        doTest(count, NadoParamType.PARAM_TYPE_MAP);
+    }
+    
+    public static void doTest(int count, int type) throws Exception
+    {
+        FunctionTime time = new FunctionTime();
+        String paramValue = null;
+        Object ret = null;
+        time.add("count", count);
+        
+        Object object = null;
+        if (type == NadoParamType.PARAM_TYPE_NULL)
+        {
+            time.add("type", "null");
+            object = null;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_INT)
+        {
+            time.add("type", "int");
+            object = 1232412341;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_LONG)
+        {
+            time.add("type", "long");
+            object = 1232413422341L;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_BOOLEAN)
+        {
+            time.add("type", "boolean");
+            object = true;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_DOUBLE)
+        {
+            time.add("type", "double");
+            object = 234234.4341;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_STRING)
+        {
+            time.add("type", "string");
+            object = "i wanna go...";
+        }
+        else if (type == NadoParamType.PARAM_TYPE_LIST)
+        {
+            time.add("type", "list");
+            List<String> lst = new ArrayList<String>();
+            lst.add("hello_1");
+            lst.add("hello_2");
+            lst.add("hello_3");
+            lst.add("hello_4");
+            object = lst;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_SET)
+        {
+            time.add("type", "set");
+            Set<String> lst = new LinkedHashSet<String>();
+            lst.add("hello_1");
+            lst.add("hello_2");
+            lst.add("hello_3");
+            lst.add("hello_4");
+            object = lst;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_MAP)
+        {
+            time.add("type", "map");
+            Map<String, CompareKey> lst = new LinkedHashMap<String, CompareKey>();
+            lst.put("hell_1", new CompareKey("id_1", CompareType.CT_BIGGER));
+            lst.put("hell_2", new CompareKey("id_2", CompareType.CT_EQUAL));
+            lst.put("hell_3", new CompareKey("i_3", CompareType.CT_NOTBIGGER));
+            lst.put("hell_4", new CompareKey("id_4", CompareType.CT_SMALLER));
+            object = lst;
+        }
+        
+        time.addCurrentTime("start");
+        for (int i = 0; i < count; i++)
+        {
+            paramValue = toExplain(object);
+            ret = fromExplain(paramValue);
+        }
+        time.addCurrentTime("finish");
+        time.print();
+        Trace.print("\n param: {} explain: {} ret: {}\n\n\n", object, paramValue, ret);
+    }
 }
