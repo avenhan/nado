@@ -46,6 +46,5 @@
     		<AppenderRef ref="FileLog2"/>
     		<AppenderRef ref="Console2"/>
     	</Logger>
-
 	</Loggers>
 </Configuration>

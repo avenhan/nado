@@ -118,9 +118,6 @@ public class NettyChannelInfo
     
     public long postMessage(NettySendInfo info)
     {
-        // Trace.print("ip: {} post command: {} len: {} message: {}", ip,
-        // info.getWrap().getCommand(), info.getJson().length(),
-        // info.getWrap().getMsg());
         return postBaseMessage(info, false);
     }
     
@@ -149,7 +146,7 @@ public class NettyChannelInfo
             return;
         }
         
-        FunctionTime functionTime = new FunctionTime();
+        FunctionTime functionTime = new FunctionTime(false);
         functionTime.add("ip", ip.toString());
         
         try
@@ -255,41 +252,39 @@ public class NettyChannelInfo
             return -1;
         }
         
-        FunctionTime time = new FunctionTime();
         try
         {
             long seq = info.getWrap().getSeq();
-            // Trace.print("ip: {} post msg seq: {} is post: {} time waste: {}ms
-            // current time: {}", ip, seq, info.isPost(),
-            // System.currentTimeMillis() - info.getWrap().getTimestamp(),
-            // System.currentTimeMillis());
+            if (!channel.isConnected() || !channel.isOpen())
+            {
+                Trace.print("channel: {} is closed...", ip);
+                return -1;
+            }
             
-            // if (!channel.isConnected() || !channel.isOpen())
-            // {
-            // Trace.print("channel: {} is closed...", ip);
-            // return -1;
-            // }
-            
-            time.addCurrentTime("check connected");
-            
-            info.setSentTime(System.nanoTime());
-            info.setSendCount(info.getSendCount() + 1);
-            
-            if (redo || isServer)
+            // server only send
+            if (isServer)
             {
                 channel.write(info.getJson());
-                time.addCurrentTime("server write");
                 return seq;
             }
             
+            // redo send will set sent time and send count
+            info.setSentTime(Trace.getCurrentTime());
+            info.setSendCount(info.getSendCount() + 1);
+            
+            if (redo)
+            {
+                channel.write(info.getJson());
+                return seq;
+            }
+            
+            // first will record the send information
             mapPost.put(seq, info);
             channel.write(info.getJson());
-            time.addCurrentTime("client write");
             return seq;
         }
         finally
         {
-            time.print();
         }
     }
     
@@ -359,7 +354,7 @@ public class NettyChannelInfo
             return;
         }
         
-        FunctionTime time = new FunctionTime();
+        FunctionTime time = new FunctionTime(isServer);
         time.add("ip", ip.toString());
         
         try
@@ -377,7 +372,7 @@ public class NettyChannelInfo
             
             if (isServer)
             {
-                time.addCurrentTime("valid seq0");
+                // time.addCurrentTime("valid seq0");
                 if (!isValidServerSequence(wrap))
                 {
                     return;
@@ -410,14 +405,10 @@ public class NettyChannelInfo
     
     private NettySendInfo onReceiveAck(NettyWrap wrap)
     {
-        FunctionTime functionTime = new FunctionTime();
         long seq = wrap.getSeq();
-        functionTime.add("seq", seq);
         try
         {
-            
             NettySendInfo info = mapPost.remove(seq);
-            functionTime.addCurrentTime("remove seq");
             if (info == null)
             {
                 return null;
@@ -429,14 +420,11 @@ public class NettyChannelInfo
             }
             
             info.setRecv(wrap);
-            functionTime.addCurrentTime("before notify");
-            
             notifyObject(info);
             return info;
         }
         finally
         {
-            functionTime.print();
         }
     }
     

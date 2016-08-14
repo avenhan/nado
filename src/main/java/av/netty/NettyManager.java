@@ -205,13 +205,9 @@ public class NettyManager
             throw new AException(AException.ERR_SERVER, "channel info or wrap is null");
         }
         
-        FunctionTime time = new FunctionTime();
-        
         try
         {
-            time.add("seq", wrap.getSeq());
             String json = JsonUtil.toJson(wrap);
-            time.addCurrentTime("json");
             
             NettySendInfo sent = new NettySendInfo();
             sent.setCreateTime(System.currentTimeMillis());
@@ -219,13 +215,12 @@ public class NettyManager
             sent.setSendCount(0);
             sent.setSentTime(0);
             sent.setWrap(wrap);
-            time.addCurrentTime("sign");
             
-            return info.postMessage(sent);
+            long seq = info.postMessage(sent);
+            return seq;
         }
         finally
         {
-            time.print();
         }
     }
     
@@ -266,7 +261,9 @@ public class NettyManager
             throw new AException(AException.ERR_SERVER, "channel info or wrap is null");
         }
         
-        FunctionTime time = new FunctionTime();
+        FunctionTime time = new FunctionTime(false);
+        time.add("ip", info.getIp().toString());
+        time.add("seq", wrap.getSeq());
         
         try
         {
@@ -279,14 +276,18 @@ public class NettyManager
             sent.setSendCount(0);
             sent.setSentTime(0);
             sent.setWrap(wrap);
+            time.addCurrentTime("sign");
             
             NettyWrap ret = info.sendMessage(sent);
+            time.addCurrentTime("send");
             if (ret == null)
             {
                 return null;
             }
             
-            Trace.print(".........send seq: {} receive seq: {} time waste: {}ms", wrap.getSeq(), ret.getSeq(), Trace.getWaste(sent.getCreateTime()));
+            // Trace.print(".........send seq: {} receive seq: {} time waste:
+            // {}ms", wrap.getSeq(), ret.getSeq(),
+            // Trace.getWaste(sent.getCreateTime()));
             return ret;
         }
         finally
@@ -365,7 +366,7 @@ public class NettyManager
     @SuppressWarnings({ "unchecked", "rawtypes" })
     protected void onReceiveMessage(NettyChannelInfo info, NettyWrap wrap, NettySendInfo sendInfo)
     {
-        FunctionTime functionTime = new FunctionTime();
+        FunctionTime functionTime = new FunctionTime(false);
         functionTime.add("seq", wrap.getSeq());
         try
         {
@@ -410,18 +411,14 @@ public class NettyManager
         {
             functionTime.print();
         }
-        
-        if (sendInfo != null)
-        {
-            // Trace.print("......post seq: {} receive seq: {} time waste:
-            // {}ms", sendInfo.getWrap().getSeq(), wrap.getSeq(),
-            // System.currentTimeMillis() - sendInfo.getCreateTime());
-        }
     }
     
     private <T> void doAction(NettyController<?> controller, Object objParam, NettyChannelInfo info, NettyWrap wrap)
     {
-        FunctionTime time = new FunctionTime();
+        FunctionTime time = new FunctionTime(false);
+        time.add("ip", info.getIp().toString());
+        time.add("seq", wrap.getSeq());
+        
         Object retObject = null;
         try
         {
@@ -440,13 +437,11 @@ public class NettyManager
             if (info.isServer())
             {
                 post(info, wrap);
-                time.addCurrentTime("post msg");
+                time.addCurrentTime("post");
             }
         }
         catch (AException e)
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
         
         time.print();

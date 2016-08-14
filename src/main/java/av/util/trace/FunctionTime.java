@@ -28,12 +28,12 @@ public class FunctionTime
                                                                     }
                                                                 };
     
+    long                                     allStartTime       = 0;
     long                                     startTime          = 0;
     long                                     printTime          = 0;
+    boolean                                  print              = true;
     StackTraceElement                        trace              = null;
     private final List<String>               listOut            = new ArrayList<String>();
-    
-    private static java.text.DecimalFormat   df                 = new java.text.DecimalFormat("#.000");
     
     public static FunctionTime get()
     {
@@ -44,6 +44,23 @@ public class FunctionTime
     
     public FunctionTime()
     {
+        allStartTime = Trace.getCurrentTime();
+        if (Trace.isGetTrace())
+        {
+            trace = ((new Exception()).getStackTrace())[1];
+            startTime = Trace.getCurrentTime();
+        }
+    }
+    
+    public FunctionTime(boolean print)
+    {
+        this.print = print;
+        if (!print)
+        {
+            return;
+        }
+        
+        allStartTime = Trace.getCurrentTime();
         if (Trace.isGetTrace())
         {
             trace = ((new Exception()).getStackTrace())[1];
@@ -64,7 +81,7 @@ public class FunctionTime
     
     public void addCurrentTime(String key)
     {
-        if (!Trace.isGetTrace() || Check.IfOneEmpty(key))
+        if (!print || !Trace.isGetTrace() || Check.IfOneEmpty(key))
         {
             return;
         }
@@ -77,7 +94,7 @@ public class FunctionTime
     
     public void addCurrentTime(String format, Object... objs)
     {
-        if (!Trace.isGetTrace() || Check.IfOneEmpty(format))
+        if (!print || !Trace.isGetTrace() || Check.IfOneEmpty(format))
         {
             return;
         }
@@ -90,7 +107,7 @@ public class FunctionTime
     
     public void add(String key, Object value)
     {
-        if (!Trace.isGetTrace())
+        if (!print || !Trace.isGetTrace())
         {
             return;
         }
@@ -120,7 +137,7 @@ public class FunctionTime
     
     public void print()
     {
-        if (trace == null || !Trace.isGetTrace())
+        if (!print || trace == null || !Trace.isGetTrace())
         {
             return;
         }
@@ -136,7 +153,9 @@ public class FunctionTime
         if (!listOut.isEmpty())
         {
             ret.append(" {");
-            boolean isFirst = true;
+            ret.append("stack: ").append(Trace.getAsMs(startTime - allStartTime)).append("ms");
+            
+            boolean isFirst = false;
             for (String info : listOut)
             {
                 if (isFirst)

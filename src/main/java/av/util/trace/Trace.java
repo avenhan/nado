@@ -18,6 +18,7 @@ public class Trace
     {
         try
         {
+            System.setProperty("Log4jContextSelector", "org.apache.logging.log4j.core.async.AsyncLoggerContextSelector");
             ConfigurationSource source = new ConfigurationSource(new FileInputStream("conf/log4j2.xml"));
             Configurator.initialize(null, source);
         }
@@ -115,9 +116,14 @@ public class Trace
         return df.format(wasteTime / KEY_MILL);
     }
     
-    public static String print(String text)
+    public static String print(Object text)
     {
-        return print(true, text);
+        if (text == null)
+        {
+            return print(true, "null");
+        }
+        
+        return print(true, text.toString());
     }
     
     public static String print(String format, Object... objs)

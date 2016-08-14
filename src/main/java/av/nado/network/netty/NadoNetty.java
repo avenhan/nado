@@ -7,7 +7,6 @@ import av.nado.remote.RemoteIp;
 import av.nado.util.Aggregate;
 import av.netty.NettyManager;
 import av.util.exception.AException;
-import av.util.trace.FunctionTime;
 
 public class NadoNetty implements BaseNetwork
 {
@@ -26,13 +25,9 @@ public class NadoNetty implements BaseNetwork
     
     public <R> Aggregate<NetworkStatus, Object> send(RemoteIp ip, Object obj) throws AException
     {
-        FunctionTime time = new FunctionTime();
-        
         try
         {
             Object ret = nettyManager.send(ip, obj);
-            time.addCurrentTime("send");
-            
             Aggregate<NetworkStatus, Object> aggregate = new Aggregate<NetworkStatus, Object>();
             aggregate.put(NetworkStatus.NETWORK_STATUS_SUCCESS, ret);
             
@@ -40,7 +35,6 @@ public class NadoNetty implements BaseNetwork
         }
         finally
         {
-            time.print();
         }
     }
     

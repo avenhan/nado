@@ -150,7 +150,7 @@ public class TestClient
             
             if (ret != null)
             {
-                System.out.println(ret.toString());
+                Trace.print(ret);
             }
             
             String outputClass = "av.test.nado.TestOutput";
@@ -163,16 +163,16 @@ public class TestClient
             List<String> lst = new ArrayList<String>();
             lst.add("1");
             ret = NadoRemote.instance().invoke(outputClass, "testSimpleList", lst);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             List<TestRemote> lst2 = new ArrayList<TestRemote>();
             lst2.add(testRemote);
             ret = NadoRemote.instance().invoke(outputClass, "testList", lst2);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             // test object
             ret = NadoRemote.instance().invoke(outputClass, "testObject", testRemote);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             ret = NadoRemote.instance().invoke(outputClass, "testNull");
             
@@ -188,7 +188,7 @@ public class TestClient
         }
         catch (Throwable e)
         {
-            e.printStackTrace();
+            logger.catching(e);
             // TODO: handle exception
         }
     }
@@ -218,16 +218,16 @@ public class TestClient
             List<String> lst = new ArrayList<String>();
             lst.add("1");
             ret = testOutput.testSimpleList(lst);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             List<TestRemote> lst2 = new ArrayList<TestRemote>();
             lst2.add(testRemote);
             ret = testOutput.testList(lst2);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             // test object
             ret = testOutput.testObject(testRemote);
-            System.out.println(JsonUtil.toJson(ret));
+            Trace.print(JsonUtil.toJson(ret));
             
             ret = testOutput.testNull();
             
@@ -243,7 +243,7 @@ public class TestClient
         }
         catch (Throwable e)
         {
-            e.printStackTrace();
+            logger.catching(e);
             // TODO: handle exception
         }
     }
