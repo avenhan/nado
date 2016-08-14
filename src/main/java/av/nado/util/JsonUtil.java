@@ -71,7 +71,7 @@ public class JsonUtil
             for (Object object : jArray)
             {
                 String cellJson = toJson(object);
-                T t = toObject(type, cellJson);
+                T t = toTypeObject(type, cellJson);
                 collections.add(t);
             }
             
@@ -94,13 +94,52 @@ public class JsonUtil
         JSONObject jObject = JSONObject.parseObject(json);
         for (Entry<String, Object> entry : jObject.entrySet())
         {
-            K k = toObject(typeK, entry.getKey());
-            V v = toObject(typeV, toJson(entry.getValue()));
+            K k = toTypeObject(typeK, entry.getKey());
+            V v = toTypeObject(typeV, entry.getValue());
             map.put(k, v);
         }
         
         return map;
         
+    }
+    
+    private static <T> T toTypeObject(Class<T> type, Object obj) throws AException
+    {
+        if (obj == null)
+        {
+            return null;
+        }
+        if (obj.getClass().equals(type))
+        {
+            return type.cast(obj);
+        }
+        
+        if (type.equals(Integer.class))
+        {
+            return type.cast(Integer.parseInt(obj.toString()));
+        }
+        
+        if (type.equals(Long.class))
+        {
+            return type.cast(Long.parseLong(obj.toString()));
+        }
+        
+        if (type.equals(Double.class))
+        {
+            return type.cast(Double.parseDouble(obj.toString()));
+        }
+        
+        if (type.equals(Boolean.class))
+        {
+            return type.cast(Boolean.parseBoolean(obj.toString()));
+        }
+        
+        if (type.equals(String.class))
+        {
+            return type.cast(obj.toString());
+        }
+        
+        return toObject(type, toJson(obj));
     }
     
     public static String readJsonString(String buff) throws AException

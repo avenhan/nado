@@ -790,18 +790,29 @@ public class NadoParam
     {
         Trace.print("will do test ...");
         int count = 1000000;
-        // doTest(count, NadoParamType.PARAM_TYPE_NULL);
-        // doTest(count, NadoParamType.PARAM_TYPE_INT);
-        // doTest(count, NadoParamType.PARAM_TYPE_LONG);
-        // doTest(count, NadoParamType.PARAM_TYPE_DOUBLE);
-        // doTest(count, NadoParamType.PARAM_TYPE_BOOLEAN);
-        // doTest(count, NadoParamType.PARAM_TYPE_STRING);
-        // doTest(count, NadoParamType.PARAM_TYPE_LIST);
-        // doTest(count, NadoParamType.PARAM_TYPE_SET);
-        doTest(count, NadoParamType.PARAM_TYPE_MAP);
+        doTestNado(count, NadoParamType.PARAM_TYPE_NULL);
+        doTestNado(count, NadoParamType.PARAM_TYPE_INT);
+        doTestNado(count, NadoParamType.PARAM_TYPE_LONG);
+        doTestNado(count, NadoParamType.PARAM_TYPE_DOUBLE);
+        doTestNado(count, NadoParamType.PARAM_TYPE_BOOLEAN);
+        doTestNado(count, NadoParamType.PARAM_TYPE_STRING);
+        doTestNado(count, NadoParamType.PARAM_TYPE_LIST);
+        doTestNado(count, NadoParamType.PARAM_TYPE_SET);
+        doTestNado(count, NadoParamType.PARAM_TYPE_MAP);
+        
+        // json
+        // doTestJson(count, NadoParamType.PARAM_TYPE_NULL);
+        doTestJson(count, NadoParamType.PARAM_TYPE_INT);
+        doTestJson(count, NadoParamType.PARAM_TYPE_LONG);
+        doTestJson(count, NadoParamType.PARAM_TYPE_DOUBLE);
+        doTestJson(count, NadoParamType.PARAM_TYPE_BOOLEAN);
+        doTestJson(count, NadoParamType.PARAM_TYPE_STRING);
+        doTestJson(count, NadoParamType.PARAM_TYPE_LIST);
+        doTestJson(count, NadoParamType.PARAM_TYPE_SET);
+        doTestJson(count, NadoParamType.PARAM_TYPE_MAP);
     }
     
-    public static void doTest(int count, int type) throws Exception
+    public static void doTestNado(int count, int type) throws Exception
     {
         FunctionTime time = new FunctionTime();
         String paramValue = null;
@@ -878,6 +889,113 @@ public class NadoParam
         }
         time.addCurrentTime("finish");
         time.print();
-        Trace.print("\n param: {} explain: {} ret: {}\n\n\n", object, paramValue, ret);
+        Trace.print("param: {} explain: {} ret: {}\n\n\n", object, paramValue, ret);
+    }
+    
+    public static void doTestJson(int count, int type) throws Exception
+    {
+        FunctionTime time = new FunctionTime();
+        String paramValue = null;
+        Object ret = null;
+        time.add("count", count);
+        
+        Object object = null;
+        if (type == NadoParamType.PARAM_TYPE_NULL)
+        {
+            time.add("type", "null");
+            object = null;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_INT)
+        {
+            time.add("type", "int");
+            object = 1232412341;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_LONG)
+        {
+            time.add("type", "long");
+            object = 1232413422341L;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_BOOLEAN)
+        {
+            time.add("type", "boolean");
+            object = true;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_DOUBLE)
+        {
+            time.add("type", "double");
+            object = 234234.4341;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_STRING)
+        {
+            time.add("type", "string");
+            object = "i wanna go...";
+        }
+        else if (type == NadoParamType.PARAM_TYPE_LIST)
+        {
+            time.add("type", "list");
+            List<String> lst = new ArrayList<String>();
+            lst.add("hello_1");
+            lst.add("hello_2");
+            lst.add("hello_3");
+            lst.add("hello_4");
+            object = lst;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_SET)
+        {
+            time.add("type", "set");
+            Set<String> lst = new LinkedHashSet<String>();
+            lst.add("hello_1");
+            lst.add("hello_2");
+            lst.add("hello_3");
+            lst.add("hello_4");
+            object = lst;
+        }
+        else if (type == NadoParamType.PARAM_TYPE_MAP)
+        {
+            time.add("type", "map");
+            Map<String, CompareKey> lst = new LinkedHashMap<String, CompareKey>();
+            lst.put("hell_1", new CompareKey("id_1", CompareType.CT_BIGGER));
+            lst.put("hell_2", new CompareKey("id_2", CompareType.CT_EQUAL));
+            lst.put("hell_3", new CompareKey("i_3", CompareType.CT_NOTBIGGER));
+            lst.put("hell_4", new CompareKey("id_4", CompareType.CT_SMALLER));
+            object = lst;
+        }
+        
+        time.addCurrentTime("start");
+        if (type == NadoParamType.PARAM_TYPE_LIST)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                paramValue = JsonUtil.toJson(object);
+                ret = JsonUtil.toList(String.class, paramValue);
+            }
+        }
+        else if (type == NadoParamType.PARAM_TYPE_SET)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                paramValue = JsonUtil.toJson(object);
+                ret = JsonUtil.toSet(String.class, paramValue, new HashSet<Object>());
+            }
+        }
+        else if (type == NadoParamType.PARAM_TYPE_MAP)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                paramValue = JsonUtil.toJson(object);
+                ret = JsonUtil.toMap(String.class, CompareKey.class, paramValue, new HashMap<Object, Object>());
+            }
+        }
+        else
+        {
+            for (int i = 0; i < count; i++)
+            {
+                paramValue = JsonUtil.toJson(object);
+                ret = JsonUtil.toObject(object.getClass(), paramValue);
+            }
+        }
+        time.addCurrentTime("finish");
+        time.print();
+        Trace.print("param: {} explain: {} ret: {}\n\n\n", object, paramValue, ret);
     }
 }
