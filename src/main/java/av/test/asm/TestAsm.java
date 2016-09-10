@@ -1,30 +1,40 @@
 package av.test.asm;
 
-import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Method;
 
-import org.springframework.asm.ClassAdapter;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 
 public class TestAsm
 {
     public static void main(String[] arg) throws Exception
     {
-        // 使用全限定名，创建一个ClassReader对象
-        ClassReader classReader = new ClassReader("com.study.asm.Person");
+        ClassReader cr = new ClassReader(Person.class.getName());
+        ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+        ClassVisitor cv = new MethodChangeClassAdapter(cw);
+        cr.accept(cv, Opcodes.ASM4);
         
-        // 构建一个ClassWriter对象，并设置让系统自动计算栈和本地变量大小
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        cr.accept(cv, ClassReader.SKIP_DEBUG); 
+        // gets the bytecode of the Example class, and loads it dynamically
+        byte[] code = cw.toByteArray();
         
-        ClassAdapter classAdapter = new GeneralClassAdapter(classWriter);
+        AsmLoadClass loader = new AsmLoadClass();
+        Class<?> exampleClass = loader.defineClassFromBytes(Person.class.getName(), code);
         
-        classReader.accept(classAdapter, ClassReader.SKIP_DEBUG);
+        for (Method method : exampleClass.getMethods())
+        {
+            System.out.println(method);
+        }
         
-        byte[] classFile = classWriter.toByteArray();
+        exampleClass.getMethods()[0].invoke(null, null); // 調用execute，修改方法內容
         
-        File file = new File("D://Person.class");
+        // gets the bytecode of the Example class, and loads it dynamically
         
-        FileOutputStream fos = new FileOutputStream(file);
-        fos.write(classFile);
+        FileOutputStream fos = new FileOutputStream("output.class");
+        fos.write(code);
         fos.close();
     }
 }

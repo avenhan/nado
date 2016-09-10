@@ -13,4 +13,9 @@ public class Person
     {
         this.name = name;
     }
+    
+    public void print()
+    {
+        System.out.println("print on the screen...");
+    }
 }

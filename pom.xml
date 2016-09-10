@@ -170,14 +170,14 @@
     <dependency>
         <groupId>redis.clients</groupId>
         <artifactId>jedis</artifactId>
-        <version>2.2.1</version>
+        <version>2.2.1</version> 
     </dependency>
     
-    <!-- https://mvnrepository.com/artifact/asm/asm -->
+    <!-- https://mvnrepository.com/artifact/org.ow2.asm/asm -->
 	<dependency>
-	    <groupId>asm</groupId>
+	    <groupId>org.ow2.asm</groupId>
 	    <artifactId>asm</artifactId>
-	    <version>3.3.1</version>
+	    <version>4.0</version>
 	</dependency>
     
 

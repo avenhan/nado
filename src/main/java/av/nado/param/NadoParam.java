@@ -790,6 +790,16 @@ public class NadoParam
     {
         Trace.print("will do test ...");
         int count = 1000000;
+        // json
+        doTestJson(count, NadoParamType.PARAM_TYPE_INT);
+        doTestJson(count, NadoParamType.PARAM_TYPE_LONG);
+        doTestJson(count, NadoParamType.PARAM_TYPE_DOUBLE);
+        doTestJson(count, NadoParamType.PARAM_TYPE_BOOLEAN);
+        doTestJson(count, NadoParamType.PARAM_TYPE_STRING);
+        doTestJson(count, NadoParamType.PARAM_TYPE_LIST);
+        doTestJson(count, NadoParamType.PARAM_TYPE_SET);
+        doTestJson(count, NadoParamType.PARAM_TYPE_MAP);
+        
         doTestNado(count, NadoParamType.PARAM_TYPE_NULL);
         doTestNado(count, NadoParamType.PARAM_TYPE_INT);
         doTestNado(count, NadoParamType.PARAM_TYPE_LONG);
@@ -800,16 +810,7 @@ public class NadoParam
         doTestNado(count, NadoParamType.PARAM_TYPE_SET);
         doTestNado(count, NadoParamType.PARAM_TYPE_MAP);
         
-        // json
-        // doTestJson(count, NadoParamType.PARAM_TYPE_NULL);
-        doTestJson(count, NadoParamType.PARAM_TYPE_INT);
-        doTestJson(count, NadoParamType.PARAM_TYPE_LONG);
-        doTestJson(count, NadoParamType.PARAM_TYPE_DOUBLE);
-        doTestJson(count, NadoParamType.PARAM_TYPE_BOOLEAN);
-        doTestJson(count, NadoParamType.PARAM_TYPE_STRING);
-        doTestJson(count, NadoParamType.PARAM_TYPE_LIST);
-        doTestJson(count, NadoParamType.PARAM_TYPE_SET);
-        doTestJson(count, NadoParamType.PARAM_TYPE_MAP);
+
     }
     
     public static void doTestNado(int count, int type) throws Exception
