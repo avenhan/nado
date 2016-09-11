@@ -6,6 +6,8 @@ public class Person
     
     public String getName()
     {
+        Monitor.start();
+        Monitor.end();
         return name;
     }
     
