@@ -21,6 +21,8 @@ import org.restexpress.Request;
 import org.restexpress.Response;
 import org.restexpress.pipeline.MessageObserver;
 
+import av.nado.util.JsonUtil;
+import av.util.exception.AException;
 import io.netty.buffer.ByteBuf;
 
 public class LogMessageObserver extends MessageObserver
@@ -91,7 +93,7 @@ public class LogMessageObserver extends MessageObserver
             String header = it.next();
             sb.append("    " + header + " : " + req.getHeader(header) + "\n");
         }
-        sb.append("IP: ").append(req.getRemoteAddress());
+        sb.append("    IP: ").append(req.getRemoteAddress());
         
         return token;
     }
@@ -176,6 +178,43 @@ public class LogMessageObserver extends MessageObserver
         return replacePasswd(body);
     }
     
+    private String getBody(Response req)
+    {
+        Object objBody = req.getBody();
+        if (objBody == null)
+        {
+            return "";
+        }
+        
+        if (objBody instanceof ByteBuf)
+        {
+            ByteBuf bb = (ByteBuf)objBody;
+            bb.readerIndex(0); // always set the reader index back to the beginning
+            String body = bb.toString(ContentType.CHARSET);
+            return body;
+        }
+        
+        if (objBody instanceof NadoError)
+        {
+            try
+            {
+                String body = JsonUtil.toJson(objBody);
+                return body;
+            }
+            catch (AException e)
+            {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        
+        // UnpooledHeapByteBuf
+        
+        
+        String body = req.getBody().toString();
+        return body;
+    }
+    
     private void prepBuf(Request req, Response resp, Throwable exception, MessageLogInfo timer, StringBuilder sb)
     {
         sb.append("\nClient Request ---------------------------\n");
@@ -205,14 +244,6 @@ public class LogMessageObserver extends MessageObserver
                 }
             }
         }
-        else if (url.contains("/file/content/"))
-        {
-            sb.append("  Body : [file content here]");
-        }
-        else if (url.contains("/content/"))
-        {
-            sb.append("  Body : [file content here]");
-        }
         else
         {
             String body = getBody(req);
@@ -235,17 +266,12 @@ public class LogMessageObserver extends MessageObserver
             sb.append("  Time : (no timer)\n");
         }
         appendHeaders(resp, sb);
-        if (url.contains("/file/content/") || url.contains("avatar") || url.contains("thumb"))
-        {
-            sb.append("  Body : [file content here]");
-        }
+        
+        if (resp.hasBody())
+            sb.append("  Body : " + getBody(resp) + "\n");
         else
-        {
-            if (resp.hasBody())
-                sb.append("  Body : " + resp.getBody().toString() + "\n");
-            else
-                sb.append("  Body : \n");
-        }
+            sb.append("  Body : \n");
+        
         sb.append("Server Response ---------------------------\n");
     }
     

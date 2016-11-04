@@ -1,6 +1,7 @@
 package av.rest;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -66,9 +67,7 @@ public class NadoRest
         m_restExpress.addMessageObserver(new LogMessageObserver());
         m_restExpress.setExceptionMap(new NadoExceptionMapping());
         
-        // m_restExpress.addPreprocessor(new TestPreprocessor());
         m_restExpress.addFinallyProcessor(new TestPreprocessor());
-        // m_restExpress.addPostprocessor(new TestPreprocessor());
         
         for (Object object : lstObjects)
         {
@@ -129,6 +128,16 @@ public class NadoRest
             info.setController(object);
             info.setMethodName(method.getName());
             info.setRqstType(rest.request());
+            
+            Parameter[] params = method.getParameters();
+            for (int i = 0; i < params.length; i++)
+            {
+                Parameter param = params[i];
+                Class<?> cc = param.getType();
+                System.out.println("method: " + method.getName() + " param index: " + i + " name: " + param.getName() + " type:"
+                        + cc.getName());
+            }
+            // info.setParamTypes(types);
             
             NadoRestController controller = new NadoRestController();
             controller.addRestInformation(info);

@@ -88,7 +88,7 @@ public class NadoHttpController
     @Rest(uri = "test", request = TestGetRequest.class)
     public Object testGet(TestGetRequest rqst, Response response) throws Exception
     {
-        throw new AException(AException.ERR_CONFLICT, "fuck exception...");
+        throw new AException(AException.ERR_NOT_MOIDIFIED, "fuck exception...");
         // return "test get from api-02\n";
     }
     
