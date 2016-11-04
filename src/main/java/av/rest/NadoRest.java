@@ -139,6 +139,9 @@ public class NadoRest
             }
             // info.setParamTypes(types);
             
+            String[] names = ParameterNameUtils.getMethodParameterNamesByAsm4(type, method);
+            System.out.println(names);
+            
             NadoRestController controller = new NadoRestController();
             controller.addRestInformation(info);
             controller.setInfo(info);
