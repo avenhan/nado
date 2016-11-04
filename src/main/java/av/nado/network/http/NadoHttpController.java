@@ -10,6 +10,7 @@ import av.nado.remote.NadoResponse;
 import av.nado.remote.NadoWrap;
 import av.nado.util.Check;
 import av.rest.Rest;
+import av.rest.RestParam;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
 
@@ -110,4 +111,9 @@ public class NadoHttpController
         return "test post Id";
     }
     
+    @Rest(uri = "test/idx", method = "post", request = TestPostRequest.class)
+    public Object testPostIdx(@RestParam(key = "name") String name, @RestParam(key = "age") int age) throws Exception
+    {
+        return "test post Idx";
+    }
 }
