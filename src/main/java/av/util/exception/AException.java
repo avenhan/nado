@@ -111,7 +111,10 @@ public class AException extends Exception
         super(getExceptionMessage(null, code, e, null));
         setStackTrace(e.getStackTrace());
         isException = true;
-        
+        if (e != null)
+        {
+            clientMsg = e.getMessage();
+        }
         outputLog();
     }
     
@@ -120,6 +123,11 @@ public class AException extends Exception
         super(getExceptionMessage(id, code, e, null));
         setStackTrace(e.getStackTrace());
         isException = true;
+        if (e != null)
+        {
+            clientMsg = e.getMessage();
+        }
+        
         outputLog();
     }
     
@@ -128,7 +136,13 @@ public class AException extends Exception
         super(getExceptionMessage(null, code, e, reasonFormat, objs));
         setStackTrace(e.getStackTrace());
         isException = true;
-        this.clientMsg = Trace.print(reasonFormat, objs);
+        this.clientMsg = Trace.print(false, reasonFormat, objs);
+        
+        if (Check.IfOneEmpty(this.clientMsg) && e != null)
+        {
+            clientMsg = e.getMessage();
+        }
+        
         outputLog();
     }
     
@@ -137,7 +151,11 @@ public class AException extends Exception
         super(getExceptionMessage(id, code, e, reasonFormat, objs));
         setStackTrace(e.getStackTrace());
         isException = true;
-        this.clientMsg = Trace.print(reasonFormat, objs);
+        this.clientMsg = Trace.print(false, reasonFormat, objs);
+        if (Check.IfOneEmpty(this.clientMsg) && e != null)
+        {
+            clientMsg = e.getMessage();
+        }
         outputLog();
     }
     
@@ -262,7 +280,8 @@ public class AException extends Exception
         {
             uuid = UUID.randomUUID().toString();
         }
-        StringBuilder ret = new StringBuilder(idPrefix).append(uuid).append(":").append(code).append(":").append(Trace.print(reasonFormat, objs));
+        StringBuilder ret = new StringBuilder(idPrefix).append(uuid).append(":").append(code).append(":")
+                .append(Trace.print(false, reasonFormat, objs));
         return ret.toString();
     }
     
@@ -274,12 +293,17 @@ public class AException extends Exception
             uuid = UUID.randomUUID().toString();
         }
         
-        String clientMsg = Trace.print(reasonFormat, objs);
+        String clientMsg = Trace.print(false, reasonFormat, objs);
         StringBuilder ret = new StringBuilder(idPrefix).append(uuid).append(":").append(code).append(":");
         if (!Check.IfOneEmpty(clientMsg))
         {
             ret.append(clientMsg).append(":");
         }
+        else
+        {
+            ret.append(e.getMessage()).append(":");
+        }
+        
         ret.append(e.getClass().getName()).append(" ");
         ret.append(e.getMessage());
         return ret.toString();

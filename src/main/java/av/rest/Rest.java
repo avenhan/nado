@@ -15,7 +15,9 @@ public @interface Rest
     public String uri();
     
     /***
-     * get; post; delete; put; header
+     * get; post; delete; put; head
+     * 
+     * can be one more, such as: get,head
      * 
      * @return
      */

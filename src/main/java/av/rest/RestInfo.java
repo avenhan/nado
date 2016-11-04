@@ -17,6 +17,7 @@ public class RestInfo
         mapHttpMethod.put("post", HttpMethod.POST);
         mapHttpMethod.put("put", HttpMethod.PUT);
         mapHttpMethod.put("delete", HttpMethod.DELETE);
+        mapHttpMethod.put("head", HttpMethod.HEAD);
     }
     
     private Class<?>                    type;

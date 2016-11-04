@@ -2,7 +2,7 @@ package av.test.asm;
 
 public class Person
 {
-    private String name;
+    private String name = "zoop";
     
     public String getName()
     {

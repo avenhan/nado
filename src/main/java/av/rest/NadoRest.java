@@ -12,6 +12,7 @@ import org.restexpress.RestExpress;
 import av.nado.network.http.NadoHttpController;
 import av.nado.util.Check;
 import av.rest.preprocessor.LogMessageObserver;
+import av.rest.preprocessor.NadoExceptionMapping;
 import av.util.exception.AException;
 
 public class NadoRest
@@ -63,6 +64,11 @@ public class NadoRest
         m_restExpress.setMaxContentSize(Integer.MAX_VALUE);
         
         m_restExpress.addMessageObserver(new LogMessageObserver());
+        m_restExpress.setExceptionMap(new NadoExceptionMapping());
+        
+        // m_restExpress.addPreprocessor(new TestPreprocessor());
+        m_restExpress.addFinallyProcessor(new TestPreprocessor());
+        // m_restExpress.addPostprocessor(new TestPreprocessor());
         
         for (Object object : lstObjects)
         {
@@ -105,12 +111,12 @@ public class NadoRest
             
             Rest rest = method.getAnnotation(Rest.class);
             String uri = rest.uri();
-            StringBuilder b = new StringBuilder(config.getVersion()).append("/").append(uri);
+            StringBuilder b = new StringBuilder(uri);
             
             if (m_mapRestInfo.containsKey(b.toString()))
             {
                 RestInfo existedInfo = m_mapRestInfo.get(b.toString()).getInfo();
-                if (existedInfo != null)
+                if (existedInfo != null && existedInfo.getMethod().equals(rest.method().toLowerCase()))
                 {
                     throw new AException(AException.ERR_FATAL, "uri: {} method: {} existed at: {}.{}()", b.toString(), rest.method(),
                             existedInfo.getType().getName(), existedInfo.getMethodName());

@@ -88,7 +88,14 @@ public class NadoHttpController
     @Rest(uri = "test", request = TestGetRequest.class)
     public Object testGet(TestGetRequest rqst, Response response) throws Exception
     {
-        return "test get";
+        throw new AException(AException.ERR_CONFLICT, "fuck exception...");
+        // return "test get from api-02\n";
+    }
+    
+    @Rest(uri = "test", request = TestGetRequest.class, method = "head")
+    public Object testGetHead(TestGetRequest rqst, Response response) throws Exception
+    {
+        return "test head";
     }
     
     @Rest(uri = "test/{type}", method = "post", request = TestPostRequest.class)

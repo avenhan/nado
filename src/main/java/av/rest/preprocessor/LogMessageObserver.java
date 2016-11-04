@@ -28,6 +28,14 @@ public class LogMessageObserver extends MessageObserver
     private static Logger                     logger = LogManager.getLogger(LogMessageObserver.class);
     private final Map<String, MessageLogInfo> timers = new ConcurrentHashMap<String, MessageLogInfo>();
     
+    private static List<String>               FILTERED_URLS = new ArrayList<String>();
+    static
+    {
+        FILTERED_URLS.add("/album/list");
+        FILTERED_URLS.add("/album/items");
+        FILTERED_URLS.add("/event");
+    }
+    
     public Map<String, MessageLogInfo> getCopyInformation()
     {
         Map<String, MessageLogInfo> mapRet = new HashMap<String, MessageLogInfo>();
@@ -256,14 +264,6 @@ public class LogMessageObserver extends MessageObserver
             prepBuf(request, response, null, info, sb);
             logger.debug(sb.toString());
         }
-    }
-    
-    private static final List<String> FILTERED_URLS = new ArrayList<String>();
-    static
-    {
-        FILTERED_URLS.add("/album/list");
-        FILTERED_URLS.add("/album/items");
-        FILTERED_URLS.add("/event");
     }
     
     protected boolean filtered(String url)

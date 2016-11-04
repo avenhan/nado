@@ -13,6 +13,7 @@ import org.restexpress.Request;
 import org.restexpress.Response;
 
 import av.nado.util.Check;
+import av.rest.preprocessor.NadoError;
 import av.util.exception.AException;
 
 public class NadoRestController
@@ -191,24 +192,60 @@ public class NadoRestController
         return null;
     }
     
+    public Object head(Request request, Response response) throws Exception
+    {
+        return create(request, response);
+    }
+    
     public Object create(Request request, Response response) throws Exception
     {
-        if (Check.IfOneEmpty(mapMostLike))
+        Object objRet = null;
+        try
         {
-            ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-            return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+            if (Check.IfOneEmpty(mapMostLike))
+            {
+                ApiRequest rqst = initializeRequest(info.getRqstType(), request);
+                objRet = info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+            }
+            else
+            {
+                String url = request.getPath();
+                RestInfo otherInfo = mapMostLike.get(url);
+                if (otherInfo == null)
+                {
+                    ApiRequest rqst = initializeRequest(info.getRqstType(), request);
+                    objRet = info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
+                }
+                else
+                {
+                    ApiRequest rqst = initializeRequest(otherInfo.getRqstType(), request);
+                    objRet = otherInfo.getMethodAccess().invoke(otherInfo.getController(), otherInfo.getMethodName(), rqst, response);
+                }
+            }
+        }
+        catch (AException e)
+        {
+            NadoError err = new NadoError();
+            err.setCode(e.getCode());
+            err.setId(e.getId());
+            err.setMessage(e.getClientMessage());
+            
+            response.setResponseCode(e.getCode());
+            objRet = err;
+        }
+        catch (Throwable ea)
+        {
+            AException e = new AException(AException.ERR_SERVER, ea);
+            NadoError err = new NadoError();
+            err.setCode(e.getCode());
+            err.setId(e.getId());
+            err.setMessage(e.getClientMessage());
+            
+            response.setResponseCode(e.getCode());
+            objRet = err;
         }
         
-        String url = request.getPath();
-        RestInfo otherInfo = mapMostLike.get(url);
-        if (otherInfo == null)
-        {
-            ApiRequest rqst = initializeRequest(info.getRqstType(), request);
-            return info.getMethodAccess().invoke(info.getController(), info.getMethodName(), rqst, response);
-        }
-        
-        ApiRequest rqst = initializeRequest(otherInfo.getRqstType(), request);
-        return otherInfo.getMethodAccess().invoke(otherInfo.getController(), otherInfo.getMethodName(), rqst, response);
+        return objRet;
     }
     
     public Object read(Request request, Response response) throws Exception

@@ -139,7 +139,7 @@ public class Trace
      * @param objs
      * @return
      */
-    protected static String print(boolean isTrace, String format, Object... objs)
+    public static String print(boolean isTrace, String format, Object... objs)
     {
         if (!m_isGetTrace)
         {
@@ -151,11 +151,11 @@ public class Trace
             return "";
         }
         
-        StackTraceElement trace = ((new Exception()).getStackTrace())[2];
         String[] arr = format.split("\\{\\}");
         StringBuilder b = null;
         if (isTrace)
         {
+            StackTraceElement trace = ((new Exception()).getStackTrace())[2];
             b = new StringBuilder(trace.getClassName()).append(" ");
             b.append(trace.getLineNumber()).append(" ");
             b.append(trace.getMethodName()).append(" - ");
