@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target({ ElementType.PARAMETER })
 public @interface RestParam
 {
-    public String key();
+    public String key() default "";
     
     public boolean required() default true;
     

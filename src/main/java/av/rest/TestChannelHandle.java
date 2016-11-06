@@ -2,6 +2,9 @@ package av.rest;
 
 import java.net.SocketAddress;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -16,140 +19,146 @@ import io.netty.util.concurrent.EventExecutor;
 
 public class TestChannelHandle implements ChannelHandlerContext
 {
-
-    public ChannelFuture bind(SocketAddress arg0)
+    private static Logger logger = LogManager.getLogger(TestChannelHandle.class);
+    
+    public ChannelFuture bind(SocketAddress localAddress)
     {
         // TODO Auto-generated method stub
+        logger.debug(localAddress.toString());
         return null;
     }
     
-    public ChannelFuture bind(SocketAddress arg0, ChannelPromise arg1)
+    public ChannelFuture connect(SocketAddress remoteAddress)
     {
         // TODO Auto-generated method stub
+        logger.debug(remoteAddress.toString());
         return null;
     }
     
-    public ChannelFuture close()
+    public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress)
     {
         // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture close(ChannelPromise arg0)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture connect(SocketAddress arg0)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture connect(SocketAddress arg0, SocketAddress arg1)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture connect(SocketAddress arg0, ChannelPromise arg1)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture connect(SocketAddress arg0, SocketAddress arg1, ChannelPromise arg2)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture deregister()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture deregister(ChannelPromise arg0)
-    {
-        // TODO Auto-generated method stub
+        logger.debug(localAddress.toString());
         return null;
     }
     
     public ChannelFuture disconnect()
     {
         // TODO Auto-generated method stub
+        logger.debug("disconnect");
         return null;
     }
     
-    public ChannelFuture disconnect(ChannelPromise arg0)
+    public ChannelFuture close()
+    {
+        // TODO Auto-generated method stub
+        logger.debug("close");
+        return null;
+    }
+    
+    public ChannelFuture deregister()
+    {
+        // TODO Auto-generated method stub
+        logger.debug("disregister");
+        return null;
+    }
+    
+    public ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("bind: {}", localAddress.toString());
+        return null;
+    }
+    
+    public ChannelFuture connect(SocketAddress remoteAddress, ChannelPromise promise)
+    {
+        // TODO Auto-generated method stub
+        
+        logger.debug("connect: {}", remoteAddress.toString());
+        return null;
+    }
+    
+    public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise)
     {
         // TODO Auto-generated method stub
         return null;
     }
     
-    public ChannelFuture newFailedFuture(Throwable arg0)
+    public ChannelFuture disconnect(ChannelPromise promise)
     {
         // TODO Auto-generated method stub
         return null;
     }
     
-    public ChannelProgressivePromise newProgressivePromise()
+    public ChannelFuture close(ChannelPromise promise)
     {
         // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelFuture deregister(ChannelPromise promise)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelFuture write(Object msg)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("write: {}", msg.toString());
+        return null;
+    }
+    
+    public ChannelFuture write(Object msg, ChannelPromise promise)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("write: {}", msg.toString());
+        return null;
+    }
+    
+    public ChannelFuture writeAndFlush(Object msg, ChannelPromise promise)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("write: {}", msg.toString());
+        return null;
+    }
+    
+    public ChannelFuture writeAndFlush(Object msg)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("write: {}", msg.toString());
         return null;
     }
     
     public ChannelPromise newPromise()
     {
         // TODO Auto-generated method stub
+        logger.debug("promise");
+        return null;
+    }
+    
+    public ChannelProgressivePromise newProgressivePromise()
+    {
+        // TODO Auto-generated method stub
+        logger.debug("promise");
         return null;
     }
     
     public ChannelFuture newSucceededFuture()
     {
         // TODO Auto-generated method stub
+        logger.debug("new succeeded");
+        return null;
+    }
+    
+    public ChannelFuture newFailedFuture(Throwable cause)
+    {
+        // TODO Auto-generated method stub
+        logger.debug("new failed");
         return null;
     }
     
     public ChannelPromise voidPromise()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture write(Object arg0)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture write(Object arg0, ChannelPromise arg1)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture writeAndFlush(Object arg0)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelFuture writeAndFlush(Object arg0, ChannelPromise arg1)
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ByteBufAllocator alloc()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public <T> Attribute<T> attr(AttributeKey<T> arg0)
     {
         // TODO Auto-generated method stub
         return null;
@@ -167,28 +176,22 @@ public class TestChannelHandle implements ChannelHandlerContext
         return null;
     }
     
-    public ChannelHandlerContext fireChannelActive()
+    public String name()
     {
         // TODO Auto-generated method stub
         return null;
     }
     
-    public ChannelHandlerContext fireChannelInactive()
+    public ChannelHandler handler()
     {
         // TODO Auto-generated method stub
         return null;
     }
     
-    public ChannelHandlerContext fireChannelRead(Object arg0)
+    public boolean isRemoved()
     {
         // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelHandlerContext fireChannelReadComplete()
-    {
-        // TODO Auto-generated method stub
-        return null;
+        return false;
     }
     
     public ChannelHandlerContext fireChannelRegistered()
@@ -203,51 +206,59 @@ public class TestChannelHandle implements ChannelHandlerContext
         return null;
     }
     
+    public ChannelHandlerContext fireChannelActive()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelHandlerContext fireChannelInactive()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelHandlerContext fireExceptionCaught(Throwable cause)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelHandlerContext fireUserEventTriggered(Object evt)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelHandlerContext fireChannelRead(Object msg)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public ChannelHandlerContext fireChannelReadComplete()
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
     public ChannelHandlerContext fireChannelWritabilityChanged()
     {
         // TODO Auto-generated method stub
         return null;
     }
     
-    public ChannelHandlerContext fireExceptionCaught(Throwable arg0)
+    public ChannelHandlerContext read()
     {
         // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelHandlerContext fireUserEventTriggered(Object arg0)
-    {
-        // TODO Auto-generated method stub
+        logger.debug("read");
         return null;
     }
     
     public ChannelHandlerContext flush()
     {
         // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public ChannelHandler handler()
-    {
-        // TODO Auto-generated method stub
-        return null;
-    }
-    
-    public <T> boolean hasAttr(AttributeKey<T> arg0)
-    {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    
-    public boolean isRemoved()
-    {
-        // TODO Auto-generated method stub
-        return false;
-    }
-    
-    public String name()
-    {
-        // TODO Auto-generated method stub
+        logger.debug("write");
         return null;
     }
     
@@ -257,10 +268,22 @@ public class TestChannelHandle implements ChannelHandlerContext
         return null;
     }
     
-    public ChannelHandlerContext read()
+    public ByteBufAllocator alloc()
     {
         // TODO Auto-generated method stub
         return null;
+    }
+    
+    public <T> Attribute<T> attr(AttributeKey<T> key)
+    {
+        // TODO Auto-generated method stub
+        return null;
+    }
+    
+    public <T> boolean hasAttr(AttributeKey<T> key)
+    {
+        // TODO Auto-generated method stub
+        return false;
     }
     
 }

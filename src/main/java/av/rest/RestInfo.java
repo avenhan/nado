@@ -31,7 +31,7 @@ public class RestInfo
     private String[]                    arrPaths;
     private boolean                     hasPattern = false;
     
-    private Class<?>[]                  paramTypes;
+    private RestParamInfo[]             paramInfos;
     
     public Class<?> getType()
     {
@@ -145,14 +145,14 @@ public class RestInfo
         this.hasPattern = hasPattern;
     }
     
-    public Class<?>[] getParamTypes()
+    public RestParamInfo[] getParamInfos()
     {
-        return paramTypes;
+        return paramInfos;
     }
     
-    public void setParamTypes(Class<?>[] paramTypes)
+    public void setParamInfos(RestParamInfo[] paramInfos)
     {
-        this.paramTypes = paramTypes;
+        this.paramInfos = paramInfos;
     }
     
 }

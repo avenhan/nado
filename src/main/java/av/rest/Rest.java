@@ -22,11 +22,4 @@ public @interface Rest
      * @return
      */
     public String method() default "get";
-    
-    /**
-     * request class type
-     * 
-     * @return
-     */
-    public Class<? extends ApiRequest> request();
 }

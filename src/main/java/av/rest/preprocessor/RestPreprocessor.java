@@ -1,4 +1,4 @@
-package av.rest;
+package av.rest.preprocessor;
 
 import org.restexpress.Request;
 import org.restexpress.Response;
@@ -6,10 +6,9 @@ import org.restexpress.pipeline.Postprocessor;
 import org.restexpress.pipeline.Preprocessor;
 
 import av.nado.util.JsonUtil;
-import av.rest.preprocessor.NadoError;
 import av.util.exception.AException;
 
-public class TestPreprocessor implements Preprocessor, Postprocessor
+public class RestPreprocessor implements Preprocessor, Postprocessor
 {
 
     public void process(Request paramRequest)

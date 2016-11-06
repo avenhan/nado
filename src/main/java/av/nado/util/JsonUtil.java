@@ -1,8 +1,11 @@
 package av.nado.util;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,6 +37,11 @@ public class JsonUtil
             return "";
         }
         
+        if (obj instanceof String)
+        {
+            return (String) obj;
+        }
+        
         return JSON.toJSONString(obj);
     }
     
@@ -48,6 +56,59 @@ public class JsonUtil
         }
         
         return JSON.parseObject(json, type);
+    }
+    
+    public static <T> T toObject(Class<T> type, String json, Class<?>... contains) throws AException
+    {
+        List<Class<?>> lstContains = new ArrayList<Class<?>>();
+        for (Class<?> contain : contains)
+        {
+            lstContains.add(contain);
+        }
+        
+        return toObject(type, json, lstContains);
+    }
+    
+    public static <T> T toObject(Class<T> type, String json, List<Class<?>> contains) throws AException
+    {
+        if (type == null || json == null || json.isEmpty())
+        {
+            throw new AException(AException.ERR_SERVER, "invalid parameter");
+        }
+        
+        if (Check.IfOneEmpty(contains))
+        {
+            return toObject(type, json);
+        }
+        
+        try
+        {
+            T t = type.newInstance();
+            JSONObject jObject = JSONObject.parseObject(json);
+            Field[] fields = type.getDeclaredFields();
+            
+            for (Field field : fields)
+            {
+                String name = field.getName();
+                Object obj = jObject.get(name);
+                if (obj == null)
+                {
+                    continue;
+                }
+                
+                Class<?> typeField = field.getType();
+                
+                System.out.println(typeField.getName() + " type name: " + typeField.getTypeName());
+            }
+            
+            return t;
+        }
+        catch (Exception e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            throw new AException(AException.ERR_SERVER, e);
+        }
     }
     
     /*
@@ -67,6 +128,11 @@ public class JsonUtil
     {
         try
         {
+            if (collections == null)
+            {
+                collections = new LinkedHashSet<Object>();
+            }
+            
             JSONArray jArray = JSONArray.parseArray(json);
             for (Object object : jArray)
             {
@@ -88,7 +154,7 @@ public class JsonUtil
     {
         if (map == null)
         {
-            map = new HashMap<Object, Object>();
+            map = new LinkedHashMap<Object, Object>();
         }
         
         JSONObject jObject = JSONObject.parseObject(json);
@@ -103,12 +169,13 @@ public class JsonUtil
         
     }
     
-    private static <T> T toTypeObject(Class<T> type, Object obj) throws AException
+    public static <T> T toTypeObject(Class<T> type, Object obj) throws AException
     {
         if (obj == null)
         {
             return null;
         }
+        
         if (obj.getClass().equals(type))
         {
             return type.cast(obj);
@@ -137,6 +204,11 @@ public class JsonUtil
         if (type.equals(String.class))
         {
             return type.cast(obj.toString());
+        }
+        
+        if (obj instanceof String)
+        {
+            return toObject(type, obj.toString());
         }
         
         return toObject(type, toJson(obj));

@@ -8,8 +8,8 @@ public class Aggregate<A1, A2> implements Serializable
      * 
      */
     private static final long serialVersionUID = 1L;
-    private A1 a1;
-    private A2 a2;
+    private A1                first;
+    private A2                second;
     
     public Aggregate()
     {
@@ -23,33 +23,33 @@ public class Aggregate<A1, A2> implements Serializable
     
     public void put(A1 a1, A2 a2)
     {
-        this.a1 = a1;
-        this.a2 = a2;
+        this.first = a1;
+        this.second = a2;
     }
     
     public void putFirst(A1 a1)
     {
-        this.a1 = a1;
+        this.first = a1;
     }
     
     public void putSecond(A2 a2)
     {
-        this.a2 = a2;
+        this.second = a2;
     }
     
     public A1 getFirst()
     {
-        return this.a1;
+        return this.first;
     }
     
     public A2 getSecond()
     {
-        return this.a2;
+        return this.second;
     }
     
     @Override
     public String toString()
     {
-        return new StringBuilder().append(a1).append(":").append(a2).toString();
+        return new StringBuilder().append(first).append(":").append(second).toString();
     }
 }

@@ -1,7 +1,10 @@
 package av.nado.network.http;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
+import org.restexpress.Request;
 import org.restexpress.Response;
 
 import av.nado.base.NadoManager;
@@ -9,15 +12,17 @@ import av.nado.param.NadoParam;
 import av.nado.remote.NadoResponse;
 import av.nado.remote.NadoWrap;
 import av.nado.util.Check;
+import av.nado.util.CompareKey;
 import av.rest.Rest;
 import av.rest.RestParam;
+import av.rest.Test;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
 
 public class NadoHttpController
 {
-    @Rest(uri = "remote", request = NadoFunctionRequest.class, method = "post")
-    public Object nadoFunctionPost(NadoFunctionRequest rqst, Response response) throws Exception
+    @Rest(uri = "remote", method = "post")
+    public Object nadoFunctionPost(NadoFunctionRequest rqst) throws Exception
     {
         FunctionTime functionTime = new FunctionTime();
         try
@@ -86,34 +91,46 @@ public class NadoHttpController
         }
     }
     
-    @Rest(uri = "test", request = TestGetRequest.class)
+    @Rest(uri = "test")
     public Object testGet(TestGetRequest rqst, Response response) throws Exception
     {
         throw new AException(AException.ERR_NOT_MOIDIFIED, "fuck exception...");
         // return "test get from api-02\n";
     }
     
-    @Rest(uri = "test", request = TestGetRequest.class, method = "head")
+    @Rest(uri = "test", method = "head")
     public Object testGetHead(TestGetRequest rqst, Response response) throws Exception
     {
         return "test head";
     }
     
-    @Rest(uri = "test/{type}", method = "post", request = TestPostRequest.class)
-    public Object testPost(TestPostRequest rqst, Response response) throws Exception
+    @Rest(uri = "test/{type}", method = "post")
+    public Object testPost(String type, @RestParam(key = "Content-Length") int contentLength, Response response) throws Exception
     {
         return "test post";
     }
     
-    @Rest(uri = "test/id", method = "post", request = TestPostRequest.class)
-    public Object testPostId(TestPostRequest rqst, Response response) throws Exception
+    @Rest(uri = "test/id", method = "post")
+    public Object testPostId(Request rqst, Response rspd) throws Exception
     {
         return "test post Id";
     }
     
-    @Rest(uri = "test/idx", method = "post", request = TestPostRequest.class)
-    public Object testPostIdx(@RestParam(key = "name") String name, @RestParam(key = "age") int age) throws Exception
+    @Rest(uri = "test/idx", method = "post")
+    public Object testPostIdx(@RestParam(required = false) List<Test> saves, @RestParam(required = false) Collection<Test> sets,
+            @RestParam(required = false) Map<CompareKey, Test> maps, @RestParam(required = false) Test[] arr) throws Exception
     {
+        for (Test test : saves)
+        {
+            System.out.println("id: " + test.getId() + " value: " + test.getValue());
+        }
         return "test post Idx";
+    }
+    
+    @Rest(uri = "test/idxs", method = "post")
+    public void stFun(@RestParam(required = false) int a, @RestParam(required = false) double b, @RestParam(required = false) boolean c,
+            @RestParam(required = false) short d, @RestParam(required = false) byte e, @RestParam(required = false) char f)
+    {
+        System.out.println("a: " + a + " d: " + d + " c: " + c);
     }
 }
