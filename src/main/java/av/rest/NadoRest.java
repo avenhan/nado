@@ -174,9 +174,20 @@ public class NadoRest
             controller.addRestInformation(info);
             controller.setInfo(info);
             
-            m_restExpress.uri(b.toString(), controller).method(info.getHttpMethod());
-            m_mapRestInfo.put(b.toString(), controller);
+            if (info.isUpstream())
+            {
+                m_restExpress.uploadUri(b.toString(), controller);
+            }
+            else if (info.isDownstream())
+            {
+                m_restExpress.downloadUri(b.toString(), controller);
+            }
+            else
+            {
+                m_restExpress.uri(b.toString(), controller).method(info.getHttpMethod());
+            }
             
+            m_mapRestInfo.put(b.toString(), controller);
         }
     }
     

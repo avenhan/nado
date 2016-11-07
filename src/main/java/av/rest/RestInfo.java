@@ -9,7 +9,9 @@ import io.netty.handler.codec.http.HttpMethod;
 
 public class RestInfo
 {
-    private static Map<String, HttpMethod> mapHttpMethod = new HashMap<String, HttpMethod>();
+    private static Map<String, HttpMethod> mapHttpMethod  = new HashMap<String, HttpMethod>();
+    public static final String             KEY_UPSTREAM   = "upload";
+    public static final String             KEY_DOWNSTREAM = "download";
     
     static
     {
@@ -18,6 +20,8 @@ public class RestInfo
         mapHttpMethod.put("put", HttpMethod.PUT);
         mapHttpMethod.put("delete", HttpMethod.DELETE);
         mapHttpMethod.put("head", HttpMethod.HEAD);
+        mapHttpMethod.put(KEY_UPSTREAM, HttpMethod.PUT);
+        mapHttpMethod.put(KEY_DOWNSTREAM, HttpMethod.GET);
     }
     
     private Class<?>                    type;
@@ -66,6 +70,26 @@ public class RestInfo
     public String getMethod()
     {
         return method;
+    }
+    
+    public boolean isUpstream()
+    {
+        if (method.equalsIgnoreCase(KEY_UPSTREAM))
+        {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public boolean isDownstream()
+    {
+        if (method.equalsIgnoreCase(KEY_DOWNSTREAM))
+        {
+            return true;
+        }
+        
+        return false;
     }
     
     @SuppressWarnings("static-access")

@@ -133,4 +133,14 @@ public class NadoHttpController
     {
         System.out.println("a: " + a + " d: " + d + " c: " + c);
     }
+    
+    @Rest(uri = "test/upload/{file-name}", method = "upload")
+    public void testUpload(@RestParam(key = "file-name") String fileName)
+    {
+    }
+    
+    @Rest(uri = "test/download/{file-name}", method = "download")
+    public void testDownload(@RestParam(key = "file-name") String fileName)
+    {
+    }
 }
