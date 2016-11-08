@@ -116,7 +116,6 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel>
         // Outbound handlers
         pipeline.addLast("encoder", new HttpResponseEncoder());
         
-        System.out.println("add upload channel");
         pipeline.addLast("upload", new UploadChannel());
         
         pipeline.addLast("chunkWriter", new ChunkedWriteHandler());

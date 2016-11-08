@@ -100,8 +100,8 @@ public class RestExpress
     private SSLContext                   sslContext                     = null;
     private SerializationProvider        serializationProvider          = null;
     
-    private static Map<String, Object>   mapUploadUri                   = new HashMap<String, Object>();
-    private static Map<String, Object>   mapDownloadUri                 = new HashMap<String, Object>();
+    private static RestExpressUri        restUploadUri                  = new RestExpressUri();
+    private static RestExpressUri        restDownloadUri                = new RestExpressUri();
     
     /**
      * Change the default behavior for serialization. If no
@@ -887,30 +887,18 @@ public class RestExpress
         return routeDeclarations.uri(uriPattern, controller, routeDefaults);
     }
     
-    public void uploadUri(String uriPattern, Object controller)
-    {
-        // routeDeclarations.uri(uriPattern, controller, routeDefaults);
-        mapUploadUri.put(uriPattern, controller);
-    }
-    
-    public void downloadUri(String uriPattern, Object controller)
-    {
-        // routeDeclarations.uri(uriPattern, controller, routeDefaults);
-        mapDownloadUri.put(uriPattern, controller);
-    }
-    
     public RegexRouteBuilder regex(String uriPattern, Object controller)
     {
         return routeDeclarations.regex(uriPattern, controller, routeDefaults);
     }
     
-    protected static Object getUploadUriController(String uriPattern)
+    public static RestExpressUri uploadUri()
     {
-        return mapUploadUri.get(uriPattern);
+        return restUploadUri;
     }
     
-    protected static Object getDownloadUriController(String uriPattern)
+    public static RestExpressUri downloadUri()
     {
-        return mapDownloadUri.get(uriPattern);
+        return restDownloadUri;
     }
 }

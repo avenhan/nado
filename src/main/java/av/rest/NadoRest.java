@@ -17,13 +17,10 @@ import org.apache.logging.log4j.Logger;
 import org.restexpress.Request;
 import org.restexpress.Response;
 import org.restexpress.RestExpress;
+import org.restexpress.RestExpressUri;
 
 import av.nado.network.http.NadoHttpController;
-import av.nado.util.Aggregate;
 import av.nado.util.Check;
-import av.nado.util.CompareKey;
-import av.nado.util.CompareType;
-import av.nado.util.JsonUtil;
 import av.nado.util.ParameterNameUtils;
 import av.rest.preprocessor.LogMessageObserver;
 import av.rest.preprocessor.NadoExceptionMapping;
@@ -151,7 +148,15 @@ public class NadoRest
             
             Rest rest = method.getAnnotation(Rest.class);
             String uri = rest.uri();
-            StringBuilder b = new StringBuilder(uri);
+            StringBuilder b = null;
+            if (uri.startsWith("/"))
+            {
+                b = new StringBuilder(uri.substring(1));
+            }
+            else
+            {
+                b = new StringBuilder(uri);
+            }
             
             if (m_mapRestInfo.containsKey(b.toString()))
             {
@@ -176,11 +181,11 @@ public class NadoRest
             
             if (info.isUpstream())
             {
-                m_restExpress.uploadUri(b.toString(), controller);
+                m_restExpress.uploadUri().setPaths(b.toString(), controller);
             }
             else if (info.isDownstream())
             {
-                m_restExpress.downloadUri(b.toString(), controller);
+                m_restExpress.downloadUri().setPaths(b.toString(), controller);
             }
             else
             {
@@ -410,21 +415,18 @@ public class NadoRest
     // -H "Authorization:Bear 000-xxx-bbb-aaa"
     public static void main(String[] arg) throws Exception
     {
-        Test test = new Test();
-        test.setId(9090);
-        test.setValue("hello world");
-        Aggregate<CompareKey, Test> aggregate = new Aggregate<CompareKey, Test>();
-        aggregate.put(new CompareKey("max", CompareType.CT_NOTBIGGER), test);
+        RestExpressUri uri = new RestExpressUri();
+        uri.setPaths("/test/id", 1);
+        uri.setPaths("/home/user", 2);
+        uri.setPaths("/test/{type}", 3);
+        uri.setPaths("/test/{type}/id", 4);
+        uri.setPaths("/{work}/{type}/id", 5);
         
-        String json = JsonUtil.toJson(aggregate);
-        System.out.println(json);
-        
-        // Aggregate<CompareKey, Test> tt =
-        // JsonUtil.toObject(aggregate.getClass(), json, CompareKey.class,
-        // Test.class);
-        
-        ClassFileScanner scan = new ClassFileScanner("av.nado.network.http");
-        scan.getFullyQualifiedClassNameList();
+        Object obj = uri.getPathAttach("/test/id");
+        Object obj2 = uri.getPathAttach("/home/user");
+        Object obj3 = uri.getPathAttach("/test/hello");
+        Object obj4 = uri.getPathAttach("/test/hello/id");
+        Object obj5 = uri.getPathAttach("/shit/hello/id");
         
         NadoRestConfig config = new NadoRestConfig();
         config.setPort(9009);

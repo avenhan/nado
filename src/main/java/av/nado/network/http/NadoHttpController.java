@@ -127,7 +127,7 @@ public class NadoHttpController
         return "test post Idx";
     }
     
-    @Rest(uri = "test/idxs", method = "post")
+    @Rest(uri = "/test/idxs", method = "post")
     public void stFun(@RestParam(required = false) int a, @RestParam(required = false) double b, @RestParam(required = false) boolean c,
             @RestParam(required = false) short d, @RestParam(required = false) byte e, @RestParam(required = false) char f)
     {
