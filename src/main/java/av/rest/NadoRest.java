@@ -17,7 +17,6 @@ import org.apache.logging.log4j.Logger;
 import org.restexpress.Request;
 import org.restexpress.Response;
 import org.restexpress.RestExpress;
-import org.restexpress.RestExpressUri;
 
 import av.nado.network.http.NadoHttpController;
 import av.nado.util.Check;
@@ -181,11 +180,11 @@ public class NadoRest
             
             if (info.isUpstream())
             {
-                m_restExpress.uploadUri().setPaths(b.toString(), controller);
+                m_restExpress.uploadUri(b.toString(), controller);
             }
             else if (info.isDownstream())
             {
-                m_restExpress.downloadUri().setPaths(b.toString(), controller);
+                m_restExpress.downloadUri(b.toString(), controller);
             }
             else
             {
@@ -415,19 +414,6 @@ public class NadoRest
     // -H "Authorization:Bear 000-xxx-bbb-aaa"
     public static void main(String[] arg) throws Exception
     {
-        RestExpressUri uri = new RestExpressUri();
-        uri.setPaths("/test/id", 1);
-        uri.setPaths("/home/user", 2);
-        uri.setPaths("/test/{type}", 3);
-        uri.setPaths("/test/{type}/id", 4);
-        uri.setPaths("/{work}/{type}/id", 5);
-        
-        Object obj = uri.getPathAttach("/test/id");
-        Object obj2 = uri.getPathAttach("/home/user");
-        Object obj3 = uri.getPathAttach("/test/hello");
-        Object obj4 = uri.getPathAttach("/test/hello/id");
-        Object obj5 = uri.getPathAttach("/shit/hello/id");
-        
         NadoRestConfig config = new NadoRestConfig();
         config.setPort(9009);
         NadoRest.instance().loadConfig(config, new NadoHttpController());

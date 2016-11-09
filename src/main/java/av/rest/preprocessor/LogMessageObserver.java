@@ -27,8 +27,8 @@ import io.netty.buffer.ByteBuf;
 
 public class LogMessageObserver extends MessageObserver
 {
-    private static Logger                     logger = LogManager.getLogger(LogMessageObserver.class);
-    private final Map<String, MessageLogInfo> timers = new ConcurrentHashMap<String, MessageLogInfo>();
+    private static Logger                     logger        = LogManager.getLogger(LogMessageObserver.class);
+    private final Map<String, MessageLogInfo> timers        = new ConcurrentHashMap<String, MessageLogInfo>();
     
     private static List<String>               FILTERED_URLS = new ArrayList<String>();
     static
@@ -71,7 +71,6 @@ public class LogMessageObserver extends MessageObserver
             StringBuilder sb = new StringBuilder();
             prepBuf(request, response, exception, info, sb);
             logger.debug(sb.toString());
-            logger.debug("  ", exception);
         }
     }
     
@@ -188,8 +187,9 @@ public class LogMessageObserver extends MessageObserver
         
         if (objBody instanceof ByteBuf)
         {
-            ByteBuf bb = (ByteBuf)objBody;
-            bb.readerIndex(0); // always set the reader index back to the beginning
+            ByteBuf bb = (ByteBuf) objBody;
+            bb.readerIndex(0); // always set the reader index back to the
+                               // beginning
             String body = bb.toString(ContentType.CHARSET);
             return body;
         }
@@ -208,10 +208,23 @@ public class LogMessageObserver extends MessageObserver
             }
         }
         
+        if (objBody instanceof String)
+        {
+            return (String) objBody;
+        }
+        
         // UnpooledHeapByteBuf
         
-        
-        String body = req.getBody().toString();
+        String body = "";
+        try
+        {
+            body = JsonUtil.toJson(objBody);
+        }
+        catch (AException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         return body;
     }
     

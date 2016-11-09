@@ -110,12 +110,22 @@ public class AException extends Exception
     {
         super(getExceptionMessage(null, code, e, null));
         setStackTrace(e.getStackTrace());
-        isException = true;
-        if (e != null)
+        
+        if (!(e instanceof AException))
         {
-            clientMsg = e.getMessage();
+            isException = true;
+            if (e != null)
+            {
+                clientMsg = e.getMessage();
+            }
+            outputLog();
         }
-        outputLog();
+        else
+        {
+            AException ae = (AException) e;
+            isException = ae.isException;
+            clientMsg = ae.clientMsg;
+        }
     }
     
     public AException(String id, int code, Throwable e)
@@ -287,6 +297,11 @@ public class AException extends Exception
     
     private static String getExceptionMessage(String id, int code, Throwable e, String reasonFormat, Object... objs)
     {
+        if (e instanceof AException)
+        {
+            return ((AException) e).getMessage();
+        }
+        
         String uuid = id;
         if (Check.IfOneEmpty(uuid))
         {

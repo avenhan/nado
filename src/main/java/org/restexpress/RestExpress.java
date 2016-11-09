@@ -100,6 +100,7 @@ public class RestExpress
     private SSLContext                   sslContext                     = null;
     private SerializationProvider        serializationProvider          = null;
     
+    private static RestExpress           m_pThis                        = null;
     private static RestExpressUri        restUploadUri                  = new RestExpressUri();
     private static RestExpressUri        restDownloadUri                = new RestExpressUri();
     
@@ -217,6 +218,7 @@ public class RestExpress
         super();
         setName(DEFAULT_NAME);
         useSystemOut();
+        m_pThis = this;
     }
     
     public RestExpress setSSLContext(SSLContext sslContext)
@@ -767,7 +769,7 @@ public class RestExpress
     /**
      * @return
      */
-    private RouteResolver createRouteResolver()
+    protected RouteResolver createRouteResolver()
     {
         return new RouteResolver(routeDeclarations.createRouteMapping(routeDefaults));
     }
@@ -892,13 +894,38 @@ public class RestExpress
         return routeDeclarations.regex(uriPattern, controller, routeDefaults);
     }
     
-    public static RestExpressUri uploadUri()
+    public void uploadUri(String uriPattern, StreamNotify controller) throws Exception
+    {
+        if (restUploadUri.getPathAttach(uriPattern) != null)
+        {
+            throw new Exception("upload uri pattern: " + uriPattern + " is existed...");
+        }
+        
+        restUploadUri.setPaths(uriPattern, controller);
+    }
+    
+    public void downloadUri(String uriPattern, StreamNotify controller) throws Exception
+    {
+        if (restDownloadUri.getPathAttach(uriPattern) != null)
+        {
+            throw new Exception("download uri pattern: " + uriPattern + " is existed...");
+        }
+        
+        restDownloadUri.setPaths(uriPattern, controller);
+    }
+    
+    protected static RestExpressUri uploadUri()
     {
         return restUploadUri;
     }
     
-    public static RestExpressUri downloadUri()
+    protected static RestExpressUri downloadUri()
     {
         return restDownloadUri;
+    }
+    
+    protected static RestExpress getInstance()
+    {
+        return m_pThis;
     }
 }

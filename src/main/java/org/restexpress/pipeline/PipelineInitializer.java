@@ -9,6 +9,7 @@ import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+import org.restexpress.DownloadChannel;
 import org.restexpress.UploadChannel;
 
 import io.netty.channel.ChannelHandler;
@@ -123,6 +124,8 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel>
         
         // Aggregator MUST be added last, otherwise results are not correct
         pipeline.addLast("aggregator", new HttpObjectAggregator(maxContentLength));
+        
+        pipeline.addLast("upload", new DownloadChannel());
         
         addAllHandlers(pipeline);
     }

@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.restexpress.ContentType;
 import org.restexpress.Request;
 import org.restexpress.Response;
+import org.restexpress.StreamNotify;
 
 import com.alibaba.fastjson.JSONObject;
 
@@ -24,7 +25,7 @@ import av.rest.preprocessor.NadoError;
 import av.util.exception.AException;
 import io.netty.buffer.ByteBuf;
 
-public class NadoRestController
+public class NadoRestController implements StreamNotify
 {
     public static final String                             KEY_X_FORWORD_FOR   = "X-Forwarded-For";
     public static final String                             KEY_REMOTE_PORT     = "REMOTE_PORT";
@@ -454,5 +455,37 @@ public class NadoRestController
                 throw new AException(400, "request is invalid");
             }
         }
+    }
+    
+    public Object upload(Request request, Response response) throws Exception
+    {
+        Object objRet = null;
+        RestInfo callInfo = null;
+        if (Check.IfOneEmpty(mapMostLike))
+        {
+            callInfo = info;
+        }
+        else
+        {
+            String url = request.getPath();
+            RestInfo otherInfo = mapMostLike.get(url);
+            if (otherInfo == null)
+            {
+                callInfo = info;
+            }
+            else
+            {
+                callInfo = otherInfo;
+            }
+        }
+        
+        objRet = invokeRestInfo(request, response, callInfo);
+        return objRet;
+    }
+    
+    public Object download(Request request, Response response) throws Exception
+    {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
