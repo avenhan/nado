@@ -1,6 +1,7 @@
 package av.nado.network.http;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -23,6 +24,7 @@ import av.rest.Test;
 import av.util.exception.AException;
 import av.util.trace.FunctionTime;
 import io.netty.buffer.ByteBuf;
+import io.netty.handler.codec.http.HttpHeaders;
 
 public class NadoHttpController
 {
@@ -155,9 +157,7 @@ public class NadoHttpController
             request.putAttachment("fos", fos);
             System.out.println("upload file: " + fileName + " is begining...");
             
-            throw new AException(AException.ERR_NOT_FOUND, "not found the uploaded file id");
-            
-            // return null;
+            return null;
         }
         
         if (buf != null && isContinue)
@@ -198,9 +198,26 @@ public class NadoHttpController
         return null;
     }
     
+    @SuppressWarnings("deprecation")
     @Rest(uri = "test/download/{file-name}", method = "download")
-    public void testDownload(@RestParam(key = "file-name") String fileName)
+    public void testDownload(@RestParam(key = "file-name") String fileName, @RestParam(key = "Range") String range, Request request,
+            Response response) throws Exception
     {
-        System.out.println("download file: " + fileName);
+        if (Check.IfOneEmpty(fileName))
+        {
+            throw new AException(AException.ERR_INVALID_PARAMETER);
+        }
+        
+        File file = new File(fileName);
+        if (!file.exists() || !file.isFile())
+        {
+            throw new AException(AException.ERR_INVALID_PARAMETER, "not existed file");
+        }
+        
+        long size = file.length();
+        
+        response.setBody(new FileInputStream(file));
+        response.addHeader(HttpHeaders.Names.CONTENT_RANGE, range);
+        response.addHeader(HttpHeaders.Names.CONTENT_LENGTH, "" + size);
     }
 }

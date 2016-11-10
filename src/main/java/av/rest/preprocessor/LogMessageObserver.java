@@ -172,6 +172,10 @@ public class LogMessageObserver extends MessageObserver
     {
         String body = null;
         ByteBuf bb = req.getBody();
+        if (bb == null)
+        {
+            return "";
+        }
         bb.readerIndex(0); // always set the reader index back to the beginning
         body = req.getBody().toString(ContentType.CHARSET);
         return replacePasswd(body);

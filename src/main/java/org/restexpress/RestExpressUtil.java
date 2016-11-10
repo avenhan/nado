@@ -7,6 +7,8 @@ import java.util.Set;
 import av.nado.util.Check;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.HttpMethod;
 
 public class RestExpressUtil
 {
@@ -39,5 +41,10 @@ public class RestExpressUtil
     public static ByteBuf emptyBuf()
     {
         return Unpooled.buffer(8);
+    }
+    
+    public static boolean isExistedUri(ChannelHandlerContext ctx, String uri, HttpMethod method)
+    {
+        return true;
     }
 }

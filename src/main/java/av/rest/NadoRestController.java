@@ -187,6 +187,7 @@ public class NadoRestController implements StreamNotify
             mapHeaderNames.put(name.toLowerCase(), name);
         }
         
+        boolean isRawData = info.isDownstream() || info.isUpstream();
         JSONObject jObject = null;
         Object[] objParam = new Object[paramInfos.length];
         for (int i = 0; i < paramInfos.length; i++)
@@ -226,6 +227,18 @@ public class NadoRestController implements StreamNotify
             if (!Check.IfOneEmpty(realName))
             {
                 objParam[i] = JsonUtil.toTypeObject(paramType, request.getHeader(realName));
+                continue;
+            }
+            
+            if (isRawData)
+            {
+                if (restParam.required())
+                {
+                    throw new AException(AException.ERR_INVALID_PARAMETER, "not involved {} json data on method: {} in controller: {}",
+                            restParam.key(), info.getMethodName(), info.getController().getClass().getName());
+                }
+                
+                objParam[i] = explainObject(paramInfo, restParam.defaultValue());
                 continue;
             }
             
@@ -485,7 +498,6 @@ public class NadoRestController implements StreamNotify
     
     public Object download(Request request, Response response) throws Exception
     {
-        // TODO Auto-generated method stub
-        return null;
+        return upload(request, response);
     }
 }

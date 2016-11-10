@@ -103,6 +103,7 @@ public class RestExpress
     private static RestExpress           m_pThis                        = null;
     private static RestExpressUri        restUploadUri                  = new RestExpressUri();
     private static RestExpressUri        restDownloadUri                = new RestExpressUri();
+    private static RestExpressUri        restUri                        = new RestExpressUri();
     
     /**
      * Change the default behavior for serialization. If no
@@ -884,13 +885,25 @@ public class RestExpress
     
     // SECTION: ROUTE CREATION
     
-    public ParameterizedRouteBuilder uri(String uriPattern, Object controller)
+    public ParameterizedRouteBuilder uri(String uriPattern, Object controller) throws Exception
     {
+        // if (restUri.getPathAttach(uriPattern) != null)
+        // {
+        // throw new Exception("uri pattern: " + uriPattern + " is existed...");
+        // }
+        //
+        // restUri.setPaths(uriPattern, controller);
         return routeDeclarations.uri(uriPattern, controller, routeDefaults);
     }
     
-    public RegexRouteBuilder regex(String uriPattern, Object controller)
+    public RegexRouteBuilder regex(String uriPattern, Object controller) throws Exception
     {
+        // if (restUri.getPathAttach(uriPattern) != null)
+        // {
+        // throw new Exception("uri pattern: " + uriPattern + " is existed...");
+        // }
+        //
+        // restUri.setPaths(uriPattern, controller);
         return routeDeclarations.regex(uriPattern, controller, routeDefaults);
     }
     
@@ -898,9 +911,10 @@ public class RestExpress
     {
         if (restUploadUri.getPathAttach(uriPattern) != null)
         {
-            throw new Exception("upload uri pattern: " + uriPattern + " is existed...");
+            throw new Exception("uri pattern: " + uriPattern + " is existed...");
         }
         
+        // restUri.setPaths(uriPattern, controller);
         restUploadUri.setPaths(uriPattern, controller);
     }
     
@@ -908,9 +922,10 @@ public class RestExpress
     {
         if (restDownloadUri.getPathAttach(uriPattern) != null)
         {
-            throw new Exception("download uri pattern: " + uriPattern + " is existed...");
+            throw new Exception("uri pattern: " + uriPattern + " is existed...");
         }
         
+        // restUri.setPaths(uriPattern, controller);
         restDownloadUri.setPaths(uriPattern, controller);
     }
     
