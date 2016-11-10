@@ -120,12 +120,12 @@ public class PipelineInitializer extends ChannelInitializer<SocketChannel>
         pipeline.addLast("upload", new UploadChannel());
         
         pipeline.addLast("chunkWriter", new ChunkedWriteHandler());
+        pipeline.addLast("download", new DownloadChannel());
+        
         pipeline.addLast("deflater", new HttpContentCompressor());
         
         // Aggregator MUST be added last, otherwise results are not correct
         pipeline.addLast("aggregator", new HttpObjectAggregator(maxContentLength));
-        
-        pipeline.addLast("upload", new DownloadChannel());
         
         addAllHandlers(pipeline);
     }
